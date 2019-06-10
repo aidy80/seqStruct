@@ -78,7 +78,7 @@ def getSolEnergyInfo():
 
     return energyInfo
 
-def getSeqInfo3A():
+def getSeqInfo():
     allFiles = os.listdir("data")
 
     seqs = []
@@ -124,6 +124,6 @@ def getTurnCombPops(allSeqInfo, turnComb):
 
     return turnPops
 
-#allSeq, allTurn = getSeqInfo3A()
+#allSeq, allTurn = getSeqInfo()
 #energyInfo = getEnergyInfo()
 #energyInfo = getSolEnergyInfo()

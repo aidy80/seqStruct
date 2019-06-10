@@ -1,12 +1,17 @@
 import matplotlib.pyplot as plt
+import matplotlib
 import numpy as np
 import math
 import math
 import os
 import matplotlib.colors as color
 import itertools
+import sys
 
-allFiles = os.listdir("predictions")
+from matplotlib import rcParams
+rcParams.update({'figure.autolayout': True})
+
+allFiles = os.listdir(sys.argv[1] + "predictions")
 
 domain = []
 xEqualY = []
@@ -23,7 +28,9 @@ for i in range(1000):
     xEqualY.append(float(i) / 100.0)
 
 pCoefSum = 0.0
+rmsdSum = 0.0
 numNames = 0
+mdSum = 0.0
 
 #allFiles = ["Out_prediction_NSAAAG", "Out_prediction_RAAAAS"]
 #allFiles = ["Out_prediction_FRSANR"]
@@ -34,24 +41,20 @@ maxName=''
 maxP = -1.0
 
 for name in allFiles:
-    print name
+
     normSeqName = name[15:21]
 
-    predFile = open("predictions/" + name, "r")
+    predFile = open(sys.argv[1] + "predictions/" + name, "r")
 
     preds = []
     true = []
     predY = []
-    predSum = 0.0
     for line in predFile:
         words = line.split()
         if words[0] != "turn" and words[0] != 'mse:' and words[0] != 'other':
-        #if words[0] != "turn" and words[0] != 'mse:':
-            predSum += float(words[1])
-            if words[0] != "other":
-                preds.append(float(words[1]))
-                predY.append(float(words[1]))
-                true.append(float(words[2]))
+            preds.append(float(words[1]))
+            predY.append(float(words[1]))
+            true.append(float(words[2]))
                 
     meanY = float(sum(true)) / float(len(true))
     meanX = float(sum(preds)) / float(len(preds))
@@ -59,35 +62,41 @@ for name in allFiles:
     varY = 0.0
     covar = 0.0
 
+    rmsd = 0.0
+    straightMd = 0.0
+
     for index, pred in enumerate(preds):
         covar += (pred - meanX) * (true[index] - meanY)
         varX += (pred - meanX)**2 
         varY += (true[index] - meanY)**2 
+        rmsd += (true[index] - pred)**2
+        straightMd += abs(true[index] - pred)
 
-    varX /= len(preds) - 1
-    varY /= len(preds) - 1
+    rmsd = math.sqrt(rmsd / float(len(preds)))
+    rmsdSum += rmsd
+    md = straightMd / float(len(preds))
+    mdSum += md
+    print("rmsd: " + name + " " + str(rmsd))
+    print("md: " + name + " " + str(md))
 
-    pCoef = covar / ((len(preds) - 1) * math.sqrt(varX * varY)) 
-    """
-    if (pCoef > maxP):
-        maxP = pCoef
-        maxName = name
-    if (pCoef < minP):
-        minP = pCoef
-        minName = name
-    """
+    varX /= float(len(preds) - 1)
+    varY /= float(len(preds) - 1)
+
+    pCoef = covar / ((float(len(preds)) - 1.0) * math.sqrt(varX * varY)) 
 
     if numA(normSeqName) < 3:
         pCoefSum+=pCoef
         numNames+=1
-        print(name, pCoef)
-
+        print("pearson: " + name + " " + str(pCoef))
     
-    """
-    if normSeqName == "GNAAAA":
+    if normSeqName == "SVNNGA":
+        font = {'family' : 'normal', 
+                'size'   : 28}
+        matplotlib.rc('font', **font)
+
         plt.title("Predictions of %s" % normSeqName)
-        plt.xlabel("Predicted Turn Combination Likelihoods (%)")
-        plt.ylabel("BeMeta Turn Combination Likelihoods (%)")
+        plt.xlabel("Predicted TurnComb \n Likelihoods (%)")
+        plt.ylabel("BeMeta TurnComb \n Likelihoods (%)")
         plt.xlim(0,max(preds)+.5)
         plt.ylim(0,max(true)+.5)
         colorVals = []
@@ -102,16 +111,20 @@ for name in allFiles:
             plt.scatter(pred, true[index], color=next(colors))
         xPos=0.5
         yPos=max(true) - 1
-        label = "rho = %5.3f" % pCoef
+        label = "p = %5.3f" % pCoef
         plt.annotate(label, xy=(xPos, yPos)) 
+        plt.tight_layout()
         preds.append(max(preds)+.6)
         predY.append(max(predY)+.6)
         plt.plot(np.array(preds), np.array(predY), label = 'Line of Perfect Prediction')
-        plt.show()
-    """
+        #plt.show()
 
+
+    print
     predFile.close()
 
 #print "max: ", maxP, maxName
 #print "min: ", minP, minName
+print("rmsdAvg:", rmsdSum / float(numNames))
 print("pCoefAvg: ", pCoefSum / float(numNames))
+print("mdAvg:", mdSum / float(numNames))
