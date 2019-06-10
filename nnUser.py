@@ -30,7 +30,6 @@ class nnUser():
         self.decay_epoch = params.decay_epoch
         self.nImproveTime = params.nImproveTime
 
-
     def resetTrainTest(self):
         self.testSeqs = []
         self.trainSeqs = []
@@ -92,14 +91,15 @@ class nnUser():
             if (index < vecLength - self.numX):
                 seq_vec[inv_aminos_map[amino] + (index + self.numX)*len(self.aminos)] = 1
 
-
         return seq_vec 
 
-    def trainNet(self, sess, model, early_stop, outputCost):
+    def trainNet(self, sess, model, outputCost):
         costs = []
         metTest = []
         metTrain = []
         times = []
+        
+        self.lr = self.params.learning_rate
 
         sess.run(tf.global_variables_initializer())
 
@@ -126,11 +126,12 @@ class nnUser():
                     metTest.append(currMet)
                     metTrain.append(self.predict(sess, model, \
                                                     self.trainSeqs, goal="trainReturn"))
-                if(early_stop):
+                if(self.params.earlyStop):
                     if currMet > bestMet:
                         print currMet, bestMet
                         bestMet = currMet
-                        saver.save(sess, "model/my_model_final.ckpt")
+                        if self.params.saveBest:
+                            saver.save(sess, "model/my_model_final.ckpt")
                         notImprove = 0
                     else:
                         notImprove += 1
@@ -138,8 +139,7 @@ class nnUser():
                     if notImprove >= self.nImproveTime/self.calcMetStep:
                         self.lr *= self.largeDecay
                         notImprove = 0
-                    if self.lr <= self.lrThresh:
-                        self.lr = self.params.learning_rate
+                    if self.lr <= self.lrThresh or bestMet - currMet > self.params.pearBail:
                         break
 
             costs.append(c)
@@ -153,8 +153,8 @@ class nnUser():
             predVec = self.genSeqVec2D(seq, self.numX + 1)
             predVecs.append(predVec)
         if len(predVecs) != 0:
-            feed_dict = model.createDict(keep_prob=1.0, X=predVecs,\
-                    batchSize = len(predSeqs))
+            feed_dict = model.createDict(keep_prob=[1.0]*(self.params.numCLayers+1), X=predVecs,\
+                                                    batchSize = len(predSeqs))
             logits = model.getLogits()
             Z = logits.eval(session=sess, feed_dict=feed_dict)
             result = sess.run(tf.nn.softmax(Z))

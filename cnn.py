@@ -12,11 +12,13 @@ class Cnn():
         self.allTurnCombs = self.allTurnCombs.keys()
 
         self.beta = params.regBeta
+        self.numHiddenNodes = params.numHiddenNodes
         self.numX = params.numX
+        
 
         self.batchSize = tf.placeholder(tf.int32)
         self.learning_rate = tf.placeholder(tf.float32)
-        self.keep_prob = tf.placeholder(tf.float32)
+        self.keep_prob = tf.placeholder(tf.float32,shape=[params.numCLayers+1])
         self.X = tf.placeholder(tf.float32, shape=(None, self.numX + 1,len(self.aminos)), name="X")
         self.y = tf.placeholder(tf.float32, shape=(None, len(self.allTurnCombs)), name="y")
 
@@ -28,30 +30,30 @@ class Cnn():
         self.loss = -1
 
         #self.setUpArch(49, 64)
-        self.setUpArch(self.X, params.numChannels, params.numLayers,\
+        self.setUpArch(self.X, params.numChannels, params.numCLayers,\
                                 params.filterHeights)
 
-    def setUpArch(self, nnInput, numChannels, numLayers, filterHeights):
-        cnnOut = self.cnn(self.X, numChannels, numLayers, filterHeights)
+    def setUpArch(self, nnInput, numChannels, numCLayers, filterHeights):
+        cnnOut = self.cnn(self.X, numChannels, numCLayers, filterHeights)
         fcWordDim = (len(filterHeights) * numChannels[-1] + len(self.aminos))\
                             * cnnOut.get_shape()[1]
         fcInput = tf.reshape(tf.concat(axis=2, values=[cnnOut, self.X]), \
                                                                 [-1,fcWordDim])
 
-        #fcInput = tf.reshape(tf.concat(axis=2, values=[cnnOut, self.X]), \
-        #                                                   [self.batchSize,-1])
-        #fcOut = layers.linear([fc_input], len(self.numHiddenNodes), True, 1.0, scope="fc")
-        #sx_inputs = tf.nn.relu(fcOut)
-        self.logits = layers.linear([fcInput], len(self.allTurnCombs), True, 1.0, scope="softmax")
-        #self.logits = helpers.neuron_layer(fcInput,\
-        #        len(self.allTurnCombs),"final", tf.nn.relu)
+        if self.numHiddenNodes != 0:
+            fcOut = layers.linear([fcInput], self.numHiddenNodes, True, 1.0, scope="fc")
+            sx_inputs = tf.nn.relu(fcOut)
+            sx_inputs = tf.nn.dropout(sx_inputs,rate=1-self.keep_prob[-1])
+            self.logits = layers.linear([sx_inputs], len(self.allTurnCombs), True, 1.0, scope="softmax")
+        else:
+            self.logits = layers.linear([fcInput], len(self.allTurnCombs), True, 1.0, scope="softmax")
 
         xentropy = tf.nn.softmax_cross_entropy_with_logits_v2(labels=self.y, logits=self.logits)
         self.loss=tf.reduce_mean(xentropy, name="loss") 
 
         self.optimizer = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss)
                    
-    def cnn(self, nnInput, numChannels, numLayers, filterHeights):
+    def cnn(self, nnInput, numChannels, numCLayers, filterHeights):
         layerIn = nnInput
         imgH = layerIn.get_shape()[1].value
         with tf.variable_scope("cnn_layer{0}".format(0)):
@@ -59,9 +61,10 @@ class Cnn():
             cnnFilterIn = tf.reshape(layerIn, [-1, imgH, imgW, 1])
             layerOut = layers.multiChannelCnn(cnnFilterIn, imgH, imgW, \
                                         filterHeights, self.batchSize, numChannels[0])
+            #layerOut = tf.layers.batch_normalization(layerOut, training=True)
             layerIn = layerOut
-            layerIn = tf.nn.dropout(layerIn, rate=1-self.keep_prob)
-        for i in range(1, numLayers):
+            layerIn = tf.nn.dropout(layerIn, rate=1-self.keep_prob[0])
+        for i in range(1, numCLayers):
             inputDim = layerIn.get_shape()[2].value
             layerInB = tf.reshape(layerIn, [-1, inputDim])
             with tf.variable_scope("cnn_gates"):
@@ -81,6 +84,7 @@ class Cnn():
                 input_shape[0] = -1
                 layerOut = tf.reshape(layerOut, input_shape)
                 layerIn = layerOut
+                layerIn = tf.nn.dropout(layerIn, rate=1-self.keep_prob[i])
         cnnOut = layerIn
         return cnnOut
     """ 

@@ -27,33 +27,34 @@ class params():
     numX = 6
 
     numHiddenNodes = 0
-    numLayers = 1
-    numChannels = [64]*numLayers
+    numCLayers = 1
+    numChannels = [64]*numCLayers
     filterHeights = [2,3]
 """
 class params():
     learning_rate = 0.001
     n_epochs = 12000
-    regBeta = 0.00001
-    keep_prob=0.6
+    regBeta=0.0
 
     batchSize = 10
 
     lr_decay=0.99
     decay_epoch=1000
-    nImproveTime=150
+    nImproveTime=2000
+    pearBail = 0.015
     lrThresh=1e-5
     largeDecay=0.1
-    calcMetStep = 50
+    calcMetStep = 100
     earlyStop=True
+    saveBest=False
 
     numX = 6
 
     numHiddenNodes = 0
-    numLayers = 3
-    numChannels = [64]*numLayers
+    numCLayers = 3
+    numChannels = [64]*numCLayers
     filterHeights = [2,3]
-
+    keep_prob=[0.6]*(numCLayers+1)
 
 def createTrainTestPred():
     allSeqInfo, allTurnCombs = parseData.getSeqInfo()
@@ -68,9 +69,10 @@ def createTrainTestPred():
 
     first = True
 
-    #init = tf.truncated_normal_initializer(stddev=0.1)
+    init = tf.truncated_normal_initializer(stddev=2.0/50.0)
 
-    model = Cnn(params)
+    with tf.variable_scope("model", reuse=None,initializer=init):
+        model = Cnn(params)
 
     sess = tf.Session() 
     for seq in allSeqInfo:
@@ -88,7 +90,7 @@ def createTrainTestPred():
             if count % parameters.batchSize == 0 or count == numLessThree:
                 nn_user.genData(testSeqs, "test")
                 times, costs, pTests, pTrains =\
-                    nn_user.trainNet(sess,model,early_stop=params.earlyStop,outputCost=first)
+                    nn_user.trainNet(sess,model,outputCost=first)
                 if first:
                     helpers.outputCostFile(times, costs) 
                     helpers.outputPTest(times[0:len(pTests)], pTests)
