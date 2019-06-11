@@ -10,6 +10,7 @@ class nnUser():
         self.allTurnCombs = self.allTurnCombs.keys()
         self.aminos = parseData.getAminos()
         self.numX = params.numX
+        self.numExtraX = params.numExtraX
 
         self.trainInsts = []
         self.trainLabels = []
@@ -57,7 +58,7 @@ class nnUser():
                     self.testLabels[turnCount].append(currTurnDict[seq] / 100.0)
 
                 if turnCount == 0:
-                    seqVec = self.genSeqVec2D(seq, self.numX + 1)
+                    seqVec = self.genSeqVec2D(seq, self.numX + self.numExtraX)
                     if not helpers.inSeqs(seq, testSeqs) or dataType == "train":
                         self.trainInsts.append(seqVec)
                     elif seq in testSeqs:
@@ -123,7 +124,6 @@ class nnUser():
             _,c = sess.run([optimizer, loss], feed_dict=feed_dict)
             if epoch % self.calcMetStep == 0 and (self.params.earlyStop or outputCost):
                 currMet = self.predict(sess, model, self.testSeqs, goal="testReturn")
-                print "currMet: ", currMet
                 if outputCost:
                     metTest.append(currMet)
                     metTrain.append(self.predict(sess, model, \
@@ -147,12 +147,12 @@ class nnUser():
             costs.append(c)
             times.append(epoch)
         
-        return times, costs, metTest, metTrain
+        return times, costs, metTest, metTrain, bestMet
 
     def predict(self, sess, model, predSeqs, goal="test"):
         predVecs = []
         for seq in predSeqs:
-            predVec = self.genSeqVec2D(seq, self.numX + 1)
+            predVec = self.genSeqVec2D(seq, self.numX + self.numExtraX)
             predVecs.append(predVec)
         if len(predVecs) != 0:
             feed_dict = model.createDict(keep_prob=[1.0]*(self.params.numCLayers+1), X=predVecs,\

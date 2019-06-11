@@ -85,37 +85,3 @@ def linear(args, output_size, bias, bias_start=0.0, scope=None):
         initializer=tf.constant_initializer(
             bias_start, dtype=dtype))
   return res + bias_term
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    

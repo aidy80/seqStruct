@@ -14,12 +14,14 @@ class Cnn():
         self.beta = params.regBeta
         self.numHiddenNodes = params.numHiddenNodes
         self.numX = params.numX
+        self.numExtraX = params.numExtraX
         
 
         self.batchSize = tf.placeholder(tf.int32)
         self.learning_rate = tf.placeholder(tf.float32)
         self.keep_prob = tf.placeholder(tf.float32,shape=[params.numCLayers+1])
-        self.X = tf.placeholder(tf.float32, shape=(None, self.numX + 1,len(self.aminos)), name="X")
+        self.X = tf.placeholder(tf.float32, shape=(None, self.numX + self.numExtraX,\
+                                                    len(self.aminos)), name="X")
         self.y = tf.placeholder(tf.float32, shape=(None, len(self.allTurnCombs)), name="y")
 
         self.logits = -1

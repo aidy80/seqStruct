@@ -20,20 +20,6 @@ def inSeqs(seq, testSeqs):
         currSeq = currSeq[len(currSeq) - 1] + currSeq[0:len(currSeq) - 1]
     return False
 
-def neuron_layer(X, n_neurons, name, activation=None):
-    n_inputs = int(X.get_shape()[1])
-    stddev = 2 / np.sqrt(n_inputs + n_neurons)
-    init = tf.truncated_normal((n_inputs, n_neurons), stddev = stddev)
-    W = tf.Variable(init, name="kernal")
-    b = tf.Variable(tf.zeros([n_neurons]), name="bias")
-    Z = tf.matmul(X,W) + b
-    if activation is None:
-        return W, b, Z
-    else:
-        return W, b, activation(Z)
-
-#main helpers
-
 def createTrainSeqs(allSeqInfo, testSeqs):
     train = []
     for seq in allSeqInfo:
@@ -59,6 +45,30 @@ def outputPTrain(times, pTrain):
     for time in times:
         costFile.write(str(time) + " " + str(pTrain[time]) +"\n")
     costFile.close()
+
+def outputParamResults(params, metricResult, testNum):
+    lastTestNum = 0
+    for name in os.listdir("paramResults"):
+        if int(name[7]) > lastTestNum:
+            lastTestNum = int(name[7])
+    
+    paramFile = open("paramResults/testNum"+str(lastTestNum + testNum), "w")
+    
+    paramFile.write("learning_rate " + str(params.learning_rate) + "\n")
+    paramFile.write("metricBail " + str(params.pearBail) + "\n")
+    paramFile.write("numExtraX " + str(params.numExtraX) + "\n")
+    paramFile.write("hiddenNodes " + str(params.numHiddenNodes) + "\n")
+    paramFile.write("convLayers " + str(params.numCLayers) + "\n")
+    paramFile.write("filterHeights " + str(params.filterHeights) + "\n")
+    paramFile.write("numChannels " + str(params.numChannels) + "\n")
+    paramFile.write("keepProb " + str(params.keep_prob) + "\n")
+    paramFile.write("leakSlope " + str(params.leakSlope) + "\n")
+    
+    paramFile.write("bestMet " + str(metricResult) + "\n")
+
+    paramFile.close()
+
+    return lastTestNum + testNum
 
 def numValidSet(allSeqInfo):
     doneSeqs = []

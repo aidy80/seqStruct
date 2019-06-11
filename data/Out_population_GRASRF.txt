@@ -1,7 +1,7 @@
 turn 1 turn 2     counts population
   Ip_0    I_3          0   0.047999
    I_1  IIp_4          0   0.167597
-  II_1    I_4          0   8.364633
+  Ip_2   Ip_5          0   0.046399
    I_2   II_5          0   1.631967
   Ip_1    I_4          0   0.466791
    I_0  IIp_3          0   0.150797
@@ -9,7 +9,7 @@ turn 1 turn 2     counts population
  IIp_0  IIp_3          0   0.205196
    I_2   Ip_5          0   0.244795
  IIp_0   Ip_3          0     0.0076
-  II_0   II_3          0   0.036399
+   I_0    I_3          0   0.065999
   II_2   Ip_5          0      0.016
   Ip_1   II_4          0     0.0164
  IIp_0    I_3          0   4.303514
@@ -23,12 +23,12 @@ turn 1 turn 2     counts population
   II_2    I_5          0     0.0016
   II_1  IIp_4          0     0.0212
    I_2    I_5          0     0.0012
-  Ip_2   Ip_5          0   0.046399
-   I_0    I_3          0   0.065999
+  II_1    I_4          0   8.364633
   II_1   II_4          0   0.190396
  IIp_0   II_3          0   2.103158
    I_1   II_4          0   0.029199
+  II_0   II_3          0   0.036399
   II_0    I_3          0   0.146397
   II_0  IIp_3          0     0.0084
-  Ip_2   II_5          0     0.0052
  IIp_2   II_5          0   1.384372
+  Ip_2   II_5          0     0.0052

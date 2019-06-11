@@ -6,35 +6,9 @@ import os
 import shutil
 import numpy as np
 import tensorflow as tf
-from hyperparams import params
+import hyperparams 
 
-class defaultParams():
-    learning_rate = 0.001
-    n_epochs = 12000
-    regBeta=0.0
-
-    batchSize = 10
-
-    lr_decay=0.99
-    decay_epoch=1000
-    nImproveTime=2000
-    pearBail = 0.013
-    lrThresh=1e-5
-    largeDecay=0.1
-    calcMetStep = 100
-    earlyStop=True
-    saveBest=False
-
-    numX = 6
-
-    numHiddenNodes = 0
-    numCLayers = 3
-    numChannels = [64]*numCLayers
-    filterHeights = [2,3]
-    keep_prob=[0.6]*(numCLayers+1)
-    leakSlope = 0.01
-
-def createTrainTestPred(parameters):
+def createTrainTestPred(parameters, testNum):
     allSeqInfo, allTurnCombs = parseData.getSeqInfo()
 
     doneSeqs = []
@@ -46,8 +20,10 @@ def createTrainTestPred(parameters):
 
     first = True
 
-    with tf.variable_scope("model", reuse=None):
+    with tf.variable_scope("model", reuse=tf.AUTO_REUSE):
         model = Cnn(parameters)
+
+    bestMetAvg = 0.0
 
     sess = tf.Session() 
     for seq in allSeqInfo:
@@ -64,12 +40,13 @@ def createTrainTestPred(parameters):
 
             if count % parameters.batchSize == 0 or count == numLessThree:
                 nn_user.genData(testSeqs, "test")
-                times, costs, pTests, pTrains =\
+                times, costs, metTests, metTrains, metTestBest =\
                     nn_user.trainNet(sess,model,outputCost=first)
+                bestMetAvg += metTestBest / len(testSeqs)
                 if first:
                     helpers.outputCostFile(times, costs) 
-                    helpers.outputPTest(times[0:len(pTests)], pTests)
-                    helpers.outputPTrain(times[0:len(pTrains)], pTrains)
+                    helpers.outputPTest(times[0:len(metTests)], metTests)
+                    helpers.outputPTrain(times[0:len(metTrains)], metTrains)
 
                 trainSeqs = helpers.createTrainSeqs(allSeqInfo, testSeqs)
                 nn_user.predict(sess, model, testSeqs, "test")
@@ -78,6 +55,7 @@ def createTrainTestPred(parameters):
                 first = False
                 testSeqs = []
 
+    helpers.outputParamResults(parameters, bestMetAvg, testNum)
     sess.close()
 
 def findWellStruct(parameters):
@@ -94,18 +72,19 @@ def findWellStruct(parameters):
         model = Cnn(parameters)
 
     with tf.Session() as sess:
-        print "one"
         nn_user.genData([], "test")
-        print "two"
-        times, costs, pTests, pTrains = nn_user.trainNet(sess, model,\
-                outputCost=False)
-        print "three"
+        times, costs, metTests, metTrains, metTestBest = nn_user.trainNet(sess, model,\
+                                                                            outputCost=False)
 
         nn_user.predict(sess, model, allSeqs, "best")
         
 def main():
-    parameters = defaultParams()
-    findWellStruct(parameters)
-    #createTrainTestPred(parameters)
+    parameters = hyperparams.params()
+    allParamSets = hyperparams.searchParams()
+    #allParamSets = [parameters]
+    for index, paramSet in enumerate(allParamSets):
+        createTrainTestPred(paramSet, index + 1)
+
+    #findWellStruct(parameters)
 
 main()
