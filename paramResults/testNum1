@@ -1,0 +1,10 @@
+learning_rate 0.001
+metricBail 0.01
+numExtraX 1
+hiddenNodes 0
+convLayers 3
+filterHeights [2, 3]
+numChannels [64, 64, 64]
+keepProb [0.6, 0.6, 0.6, 0.6]
+leakSlope 0.1
+bestMet 0.06767621862593742

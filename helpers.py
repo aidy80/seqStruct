@@ -47,12 +47,7 @@ def outputPTrain(times, pTrain):
     costFile.close()
 
 def outputParamResults(params, metricResult, testNum):
-    lastTestNum = 0
-    for name in os.listdir("paramResults"):
-        if int(name[7]) > lastTestNum:
-            lastTestNum = int(name[7])
-    
-    paramFile = open("paramResults/testNum"+str(lastTestNum + testNum), "w")
+    paramFile = open("paramResults/testNum"+str(testNum), "w")
     
     paramFile.write("learning_rate " + str(params.learning_rate) + "\n")
     paramFile.write("metricBail " + str(params.pearBail) + "\n")
@@ -68,7 +63,7 @@ def outputParamResults(params, metricResult, testNum):
 
     paramFile.close()
 
-    return lastTestNum + testNum
+    return testNum
 
 def numValidSet(allSeqInfo):
     doneSeqs = []

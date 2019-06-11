@@ -20,6 +20,12 @@ def createTrainTestPred(parameters, testNum):
 
     first = True
 
+    print "\n\n\n"
+    print "Running Set number ", testNum
+    print "numChannels", parameters.numChannels
+    print "leakSlope", parameters.leakSlope
+    print "filterHeights", parameters.filterHeights
+
     with tf.variable_scope("model", reuse=tf.AUTO_REUSE):
         model = Cnn(parameters)
 
@@ -42,7 +48,7 @@ def createTrainTestPred(parameters, testNum):
                 nn_user.genData(testSeqs, "test")
                 times, costs, metTests, metTrains, metTestBest =\
                     nn_user.trainNet(sess,model,outputCost=first)
-                bestMetAvg += metTestBest / len(testSeqs)
+                bestMetAvg += metTestBest * len(testSeqs) / helpers.numValidSet(allSeqInfo)
                 if first:
                     helpers.outputCostFile(times, costs) 
                     helpers.outputPTest(times[0:len(metTests)], metTests)
@@ -79,11 +85,16 @@ def findWellStruct(parameters):
         nn_user.predict(sess, model, allSeqs, "best")
         
 def main():
-    parameters = hyperparams.params()
+    #parameters = hyperparams.params()
+    lastTestNum = 0
+    for name in os.listdir("paramResults"):
+        if int(name[7:]) > lastTestNum:
+            lastTestNum = int(name[7:])
+    
+
     allParamSets = hyperparams.searchParams()
-    #allParamSets = [parameters]
     for index, paramSet in enumerate(allParamSets):
-        createTrainTestPred(paramSet, index + 1)
+        createTrainTestPred(paramSet, index + 1 + lastTestNum)
 
     #findWellStruct(parameters)
 
