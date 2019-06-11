@@ -6,8 +6,9 @@ import os
 import shutil
 import numpy as np
 import tensorflow as tf
+from hyperparams import params
 
-class params():
+class defaultParams():
     learning_rate = 0.001
     n_epochs = 12000
     regBeta=0.0
@@ -17,7 +18,7 @@ class params():
     lr_decay=0.99
     decay_epoch=1000
     nImproveTime=2000
-    pearBail = 0.01
+    pearBail = 0.013
     lrThresh=1e-5
     largeDecay=0.1
     calcMetStep = 100
@@ -33,26 +34,20 @@ class params():
     keep_prob=[0.6]*(numCLayers+1)
     leakSlope = 0.01
 
-def createTrainTestPred():
+def createTrainTestPred(parameters):
     allSeqInfo, allTurnCombs = parseData.getSeqInfo()
 
     doneSeqs = []
 
     count = 0
     testSeqs = []
-    parameters = params()
     nn_user = nnUser(parameters)
     numLessThree = helpers.numValidSet(allSeqInfo)
 
     first = True
 
-    #init = tf.truncated_normal_initializer(stddev=2.0/50.0)
-    init = tf.truncated_normal_initializer(\
-                    stddev=2.0/(parameters.numChannels[0] * len(parameters.filterHeights)))
-
-    #with tf.variable_scope("model", reuse=None,initializer=init):
     with tf.variable_scope("model", reuse=None):
-        model = Cnn(params)
+        model = Cnn(parameters)
 
     sess = tf.Session() 
     for seq in allSeqInfo:
@@ -85,30 +80,32 @@ def createTrainTestPred():
 
     sess.close()
 
-def findWellStruct():
+def findWellStruct(parameters):
     #helpers.genAllSeqs()
     allSeqs = helpers.readAllSeqs()
     shutil.rmtree("bestpredictions")
     os.mkdir("bestpredictions")
-
-    parameters = params()
+    
+    parameters.earlyStop=False
+    
     nn_user = nnUser(parameters)
 
-    init = tf.truncated_normal_initializer(\
-                    stddev=2.0/(parameters.numChannels[0] * len(parameters.filterHeights)))
-
-    with tf.variable_scope("model", reuse=None,initializer=init):
+    with tf.variable_scope("model", reuse=None):
         model = Cnn(parameters)
 
     with tf.Session() as sess:
+        print "one"
         nn_user.genData([], "test")
+        print "two"
         times, costs, pTests, pTrains = nn_user.trainNet(sess, model,\
                 outputCost=False)
+        print "three"
 
         nn_user.predict(sess, model, allSeqs, "best")
         
 def main():
-    #findWellStruct()
-    createTrainTestPred()
+    parameters = defaultParams()
+    findWellStruct(parameters)
+    #createTrainTestPred(parameters)
 
 main()

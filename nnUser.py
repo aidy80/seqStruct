@@ -33,6 +33,7 @@ class nnUser():
     def resetTrainTest(self):
         self.testSeqs = []
         self.trainSeqs = []
+
         self.trainInsts = []
         self.trainLabels = []
         self.testInsts = []
@@ -120,8 +121,9 @@ class nnUser():
                     len(self.trainInsts), y_batch,
                                 self.lr)
             _,c = sess.run([optimizer, loss], feed_dict=feed_dict)
-            if epoch % self.calcMetStep == 0:
+            if epoch % self.calcMetStep == 0 and (self.params.earlyStop or outputCost):
                 currMet = self.predict(sess, model, self.testSeqs, goal="testReturn")
+                print "currMet: ", currMet
                 if outputCost:
                     metTest.append(currMet)
                     metTrain.append(self.predict(sess, model, \
