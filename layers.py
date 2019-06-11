@@ -9,7 +9,7 @@ import tensorflow as tf
 from tensorflow.python.util import nest
 
 
-def multiChannelCnn(X, img_h, img_w, filter_hs, batch_size, num_filter):
+def multiChannelCnn(X, img_h, img_w, filter_hs, batch_size, num_filter, leakSlope):
     outputs = []
     cnn_input = tf.reshape(X, [-1, img_h, img_w, 1])
     for i, filter_h in enumerate(filter_hs):
@@ -20,11 +20,14 @@ def multiChannelCnn(X, img_h, img_w, filter_hs, batch_size, num_filter):
             else:
                 down_pad = tf.zeros([batch_size, int(filter_hs[i]/2)-1, img_w, 1])
             L_input = tf.concat(axis=1, values=[up_pad, cnn_input, down_pad])
+
+            init = tf.truncated_normal_initializer(stddev=2.0/(img_h*img_w))
             W_conv = tf.get_variable(
-                "W_conv", [filter_hs[i], img_w, 1, num_filter])
+                "W_conv", [filter_hs[i], img_w, 1, num_filter],initializer=init)
             b_conv = tf.get_variable("b_conv", [num_filter], initializer=tf.constant_initializer(0.0))
             L_scores = tf.nn.conv2d(L_input, W_conv, strides = [1,1,1,1], padding = "VALID") + b_conv
-            L_relu = tf.nn.relu(L_scores)
+            L_relu = tf.nn.leaky_relu(L_scores, alpha=leakSlope)
+            #L_relu = tf.nn.elu(L_scores)
             L_out = tf.squeeze(L_relu, [2])
             outputs.append(L_out)
     out = tf.concat(axis=2, values=outputs)

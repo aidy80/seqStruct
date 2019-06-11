@@ -7,30 +7,6 @@ import shutil
 import numpy as np
 import tensorflow as tf
 
-"""
-class params():
-    learning_rate = 0.001
-    n_epochs = 12000
-    regBeta = 0.00001
-    keep_prob=0.6
-
-    batchSize = 10
-
-    lr_decay=0.99
-    decay_epoch=1000
-    nImproveTime=300
-    lrThresh=1e-5
-    largeDecay=0.1
-    calcMetStep = 100
-    earlyStop=True
-
-    numX = 6
-
-    numHiddenNodes = 0
-    numCLayers = 1
-    numChannels = [64]*numCLayers
-    filterHeights = [2,3]
-"""
 class params():
     learning_rate = 0.001
     n_epochs = 12000
@@ -51,10 +27,11 @@ class params():
     numX = 6
 
     numHiddenNodes = 0
-    numCLayers = 4
+    numCLayers = 3
     numChannels = [64]*numCLayers
     filterHeights = [2,3]
     keep_prob=[0.6]*(numCLayers+1)
+    leakSlope = 0.01
 
 def createTrainTestPred():
     allSeqInfo, allTurnCombs = parseData.getSeqInfo()
@@ -69,9 +46,12 @@ def createTrainTestPred():
 
     first = True
 
-    init = tf.truncated_normal_initializer(stddev=2.0/50.0)
+    #init = tf.truncated_normal_initializer(stddev=2.0/50.0)
+    init = tf.truncated_normal_initializer(\
+                    stddev=2.0/(parameters.numChannels[0] * len(parameters.filterHeights)))
 
-    with tf.variable_scope("model", reuse=None,initializer=init):
+    #with tf.variable_scope("model", reuse=None,initializer=init):
+    with tf.variable_scope("model", reuse=None):
         model = Cnn(params)
 
     sess = tf.Session() 
@@ -112,22 +92,21 @@ def findWellStruct():
     os.mkdir("bestpredictions")
 
     parameters = params()
+    nn_user = nnUser(parameters)
 
-    test = Cnn(parameters)
+    init = tf.truncated_normal_initializer(\
+                    stddev=2.0/(parameters.numChannels[0] * len(parameters.filterHeights)))
+
+    with tf.variable_scope("model", reuse=None,initializer=init):
+        model = Cnn(parameters)
 
     with tf.Session() as sess:
-        allSeqVec = []
-        for seq in allSeqs:
-            allSeqVec.append(test.genSeqVec(seq))
-        allSeqVec = np.array(allSeqVec)
-        test.genData([], "test")
-        times, costs = test.trainNet(sess, allSeqs,[], goal="best")
+        nn_user.genData([], "test")
+        times, costs, pTests, pTrains = nn_user.trainNet(sess, model,\
+                outputCost=False)
 
-        costFile = open("costs", "w")
-        for time in times:
-            costFile.write(str(time) + " " + str(costs[time]) +"\n")
-        costFile.close()
-
+        nn_user.predict(sess, model, allSeqs, "best")
+        
 def main():
     #findWellStruct()
     createTrainTestPred()

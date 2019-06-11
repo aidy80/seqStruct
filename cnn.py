@@ -22,19 +22,15 @@ class Cnn():
         self.X = tf.placeholder(tf.float32, shape=(None, self.numX + 1,len(self.aminos)), name="X")
         self.y = tf.placeholder(tf.float32, shape=(None, len(self.allTurnCombs)), name="y")
 
-        #self.X = tf.placeholder(tf.float32, shape=(None, 48), name="X")
-        #self.y = tf.placeholder(tf.float32, shape=(None, 49), name="y")
-
         self.logits = -1
         self.optimizer = -1
         self.loss = -1
 
-        #self.setUpArch(49, 64)
         self.setUpArch(self.X, params.numChannels, params.numCLayers,\
-                                params.filterHeights)
+                                params.filterHeights, params.leakSlope)
 
-    def setUpArch(self, nnInput, numChannels, numCLayers, filterHeights):
-        cnnOut = self.cnn(self.X, numChannels, numCLayers, filterHeights)
+    def setUpArch(self, nnInput, numChannels, numCLayers, filterHeights, leakSlope):
+        cnnOut = self.cnn(self.X, numChannels, numCLayers, filterHeights, leakSlope)
         fcWordDim = (len(filterHeights) * numChannels[-1] + len(self.aminos))\
                             * cnnOut.get_shape()[1]
         fcInput = tf.reshape(tf.concat(axis=2, values=[cnnOut, self.X]), \
@@ -53,14 +49,15 @@ class Cnn():
 
         self.optimizer = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss)
                    
-    def cnn(self, nnInput, numChannels, numCLayers, filterHeights):
+    def cnn(self, nnInput, numChannels, numCLayers, filterHeights, leakSlope):
         layerIn = nnInput
         imgH = layerIn.get_shape()[1].value
         with tf.variable_scope("cnn_layer{0}".format(0)):
             imgW = layerIn.get_shape()[2].value
             cnnFilterIn = tf.reshape(layerIn, [-1, imgH, imgW, 1])
             layerOut = layers.multiChannelCnn(cnnFilterIn, imgH, imgW, \
-                                        filterHeights, self.batchSize, numChannels[0])
+                                        filterHeights, self.batchSize,\
+                                        numChannels[0], leakSlope)
             #layerOut = tf.layers.batch_normalization(layerOut, training=True)
             layerIn = layerOut
             layerIn = tf.nn.dropout(layerIn, rate=1-self.keep_prob[0])
@@ -78,7 +75,7 @@ class Cnn():
                 imgW = layerIn.get_shape()[2].value
                 cnnLayerIn = tf.reshape(layerIn, [-1, imgH, imgW, 1])
                 layerOut = layers.multiChannelCnn(cnnLayerIn, imgH, imgW,\
-                                            filterHeights, self.batchSize, numChannels[i])
+                                filterHeights, self.batchSize, numChannels[i],leakSlope)
                 layerOutputB = tf.reshape(layerOut, [-1, inputDim])
                 layerOut = u * layerInB + (1-u) * layerOutputB
                 input_shape[0] = -1
@@ -87,33 +84,6 @@ class Cnn():
                 layerIn = tf.nn.dropout(layerIn, rate=1-self.keep_prob[i])
         cnnOut = layerIn
         return cnnOut
-    """ 
-         
-    def setUpArch(self, n_turnComb, n_inputs):
-        n_hidden1 = n_inputs
-        n_hidden2 = n_turnComb
-        n_outputs = n_turnComb
-
-        W1,b1,hidden1 = helpers.neuron_layer(self.X,n_hidden1,name="hidden1",activation=tf.nn.relu)
-        hidden1 = tf.nn.dropout(hidden1, rate=1-self.keep_prob)
-
-        W2,b2,hidden2 = helpers.neuron_layer(hidden1, n_hidden2, name="hidden2",activation=tf.nn.relu)
-        hidden2 = tf.nn.dropout(hidden2, rate=1-self.keep_prob)
-
-        W3,b3,self.logits = helpers.neuron_layer(hidden1, n_outputs, name="outputs")
-
-        regularizer1 = tf.nn.l2_loss(W1)
-        regularizer2 = tf.nn.l2_loss(W2)
-        regularizer3 = tf.nn.l2_loss(W3)
-        regularizer = regularizer1 + regularizer2 + regularizer3
-
-        xentropy = tf.nn.softmax_cross_entropy_with_logits_v2(labels=self.y,logits=self.logits)
-        self.loss=tf.reduce_mean(xentropy + self.beta * regularizer, name="loss") 
-        #Z = tf.nn.softmax(self.logits)
-        #self.loss = tf.losses.mean_squared_error(labels=self.y,predictions=Z)
-
-        self.optimizer = tf.train.AdamOptimizer(self.learning_rate).minimize(self.loss)
-    """
 
     def createDict(self, keep_prob, X, batchSize, y=None, learning_rate=None):
         fdict = {}
