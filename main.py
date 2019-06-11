@@ -41,7 +41,7 @@ class params():
     lr_decay=0.99
     decay_epoch=1000
     nImproveTime=2000
-    pearBail = 0.015
+    pearBail = 0.01
     lrThresh=1e-5
     largeDecay=0.1
     calcMetStep = 100
@@ -51,7 +51,7 @@ class params():
     numX = 6
 
     numHiddenNodes = 0
-    numCLayers = 3
+    numCLayers = 4
     numChannels = [64]*numCLayers
     filterHeights = [2,3]
     keep_prob=[0.6]*(numCLayers+1)
@@ -77,7 +77,7 @@ def createTrainTestPred():
     sess = tf.Session() 
     for seq in allSeqInfo:
         if helpers.numAla(seq) < 3 and seq not in doneSeqs:
-            print seq
+            print(seq)
             testSeqs.append(seq)
             count+=1
 

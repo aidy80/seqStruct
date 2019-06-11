@@ -128,14 +128,14 @@ class nnUser():
                                                     self.trainSeqs, goal="trainReturn"))
                 if(self.params.earlyStop):
                     if currMet > bestMet:
-                        print currMet, bestMet
+                        print(currMet, bestMet)
                         bestMet = currMet
                         if self.params.saveBest:
                             saver.save(sess, "model/my_model_final.ckpt")
                         notImprove = 0
                     else:
                         notImprove += 1
-                        print "Not", notImprove, currMet, bestMet
+                        print("Not", notImprove, currMet, bestMet)
                     if notImprove >= self.nImproveTime/self.calcMetStep:
                         self.lr *= self.largeDecay
                         notImprove = 0
@@ -161,7 +161,7 @@ class nnUser():
             if goal == "best":
                 for index, row in enumerate(result):
                     if row[24] * 100 < 25:
-                        print predSeqs[index]
+                        print(predSeqs[index])
                         self.outputPred(row, predSeqs[index], "best")
             elif goal == "testReturn":
                 metricSum = 0.0
