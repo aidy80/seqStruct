@@ -1,19 +1,32 @@
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Nov 23 10:30:58 2016
+#Aidan Fike
+#June 12, 2019
 
-@author: hlt-titan
-"""
+#Functions to create layers used in the convolutional neural network
+#These were adapted from @author: hlt-titan
 
 import tensorflow as tf
 from tensorflow.python.util import nest
 
-
+#A function to create a signal cnn layer using a leaky relu activation function
+#
+#Params: X - the input to the network
+#        img_h - the number of amino acids used to represent the sequence
+#        img_w - the number of different types of amino acids
+#        filter_hs - the heights of the various filters
+#        batch_size - the number of instances being passed in 
+#        num_filter - the number of each type of filter that is applied
+#        leakSlope - the slope of the leaky relu
+#
+#Return - The created layer
 def multiChannelCnn(X, img_h, img_w, filter_hs, batch_size, num_filter, leakSlope):
     outputs = []
     cnn_input = tf.reshape(X, [-1, img_h, img_w, 1])
+
+    #For each filter height, first pad the instances with a number of zeros
+    #such that the same height will be outputted as that which is inputted
     for i, filter_h in enumerate(filter_hs):
         with tf.variable_scope("cnn_channel{0}".format(i)):
+            #Pad the inputs
             up_pad = tf.zeros([batch_size, int(filter_hs[i]/2), img_w, 1])
             if filter_hs[i]%2==1:
                 down_pad = tf.zeros([batch_size, int(filter_hs[i]/2), img_w, 1])
@@ -21,36 +34,33 @@ def multiChannelCnn(X, img_h, img_w, filter_hs, batch_size, num_filter, leakSlop
                 down_pad = tf.zeros([batch_size, int(filter_hs[i]/2)-1, img_w, 1])
             L_input = tf.concat(axis=1, values=[up_pad, cnn_input, down_pad])
 
+            #Initialize the weights then apply them
             init = tf.truncated_normal_initializer(stddev=2.0/(img_h*img_w))
             W_conv = tf.get_variable(
                 "W_conv", [filter_hs[i], img_w, 1, num_filter],initializer=init)
             b_conv = tf.get_variable("b_conv", [num_filter], initializer=tf.constant_initializer(0.0))
             L_scores = tf.nn.conv2d(L_input, W_conv, strides = [1,1,1,1], padding = "VALID") + b_conv
-            L_relu = tf.nn.leaky_relu(L_scores, alpha=leakSlope)
-            #L_relu = tf.nn.elu(L_scores)
+            L_relu = tf.nn.leaky_relu(L_scores, alpha=leakSlope) #Leaky relu activation
             L_out = tf.squeeze(L_relu, [2])
             outputs.append(L_out)
     out = tf.concat(axis=2, values=outputs)
     return out
 
-  
+#Create a simple fully connected layer 
+#
+#Params: args: a 2D Tensor or a list of 2D, batch x n, Tensors.
+#        output_size: int, second dimension of W[i].
+#        bias: boolean, whether to add a bias term or not.
+#        bias_start: starting value to initialize the bias; 0 by default.
+#        scope: VariableScope for the created subgraph; defaults to "Linear".
+#
+#Returns:
+#    A 2D Tensor with shape [batch x output_size] equal to
+#    sum_i(args[i] * W[i]), where W[i]s are newly created matrices.
+#
+#Raises:
+#    ValueError: if some of the arguments has unspecified or wrong shape.
 def linear(args, output_size, bias, bias_start=0.0, scope=None):
-  """Linear map: sum_i(args[i] * W[i]), where W[i] is a variable.
-
-  Args:
-    args: a 2D Tensor or a list of 2D, batch x n, Tensors.
-    output_size: int, second dimension of W[i].
-    bias: boolean, whether to add a bias term or not.
-    bias_start: starting value to initialize the bias; 0 by default.
-    scope: VariableScope for the created subgraph; defaults to "Linear".
-
-  Returns:
-    A 2D Tensor with shape [batch x output_size] equal to
-    sum_i(args[i] * W[i]), where W[i]s are newly created matrices.
-
-  Raises:
-    ValueError: if some of the arguments has unspecified or wrong shape.
-  """
   if args is None or (nest.is_sequence(args) and not args):
     raise ValueError("`args` must be specified")
   if not nest.is_sequence(args):

@@ -1,3 +1,10 @@
+#Aidan Fike
+#June 11, 2019
+
+# Main program. Has options to test the accuracy of a given set of
+# hyperparameters of a convolution neural network. It also has the capability
+# of predict what sequences will yield well structured cyclic proteins
+
 from cnn import Cnn
 from nnUser import nnUser
 import parseData
@@ -8,6 +15,15 @@ import numpy as np
 import tensorflow as tf
 import hyperparams 
 
+#Determine the accuracy of a given set of hyperparameters. This is done using
+#cross validation on all of the sequences with less than 3 alanines. Also able
+#to save the best model found
+#
+#Params: parameters - The hyperparameters that are used in the following
+#                       convolutional net. A params() object
+#         testNum - The number that will be saved in the file that is outputted 
+#                   in the paramResults directory. An int
+#
 def createTrainTestPred(parameters, testNum):
     allSeqInfo, allTurnCombs = parseData.getSeqInfo()
 
@@ -16,21 +32,23 @@ def createTrainTestPred(parameters, testNum):
     count = 0
     testSeqs = []
     nn_user = nnUser(parameters)
-    numLessThree = helpers.numValidSet(allSeqInfo)
+
+    #Number of sequences with known structure and less than 3 alanines
+    numLessThree = helpers.numValidSet(allSeqInfo) 
 
     first = True
 
-    print "\n\n\n"
-    print "Running Set number ", testNum
-    print "numChannels", parameters.numChannels
-    print "leakSlope", parameters.leakSlope
-    print "filterHeights", parameters.filterHeights
+    #Print to command line the current parameter information
+    helpers.outputParamInfo(parameters, testNum) 
 
-    with tf.variable_scope("model", reuse=tf.AUTO_REUSE):
+    with tf.variable_scope("model" + str(testNum)):
         model = Cnn(parameters)
 
     bestMetAvg = 0.0
 
+    #For each sequence, place it into the current batch. Then, when there are a
+    #"batch number" of sequences collected, train a convo network with them as
+    #the validation set. Then, measure the accuracy of the current network.
     sess = tf.Session() 
     for seq in allSeqInfo:
         if helpers.numAla(seq) < 3 and seq not in doneSeqs:
@@ -49,7 +67,8 @@ def createTrainTestPred(parameters, testNum):
                 times, costs, metTests, metTrains, metTestBest =\
                     nn_user.trainNet(sess,model,outputCost=first)
                 bestMetAvg += metTestBest * len(testSeqs) / helpers.numValidSet(allSeqInfo)
-                if first:
+                if first: #Output files of the training and testing accuracy
+                          #over the training process
                     helpers.outputCostFile(times, costs) 
                     helpers.outputPTest(times[0:len(metTests)], metTests)
                     helpers.outputPTrain(times[0:len(metTrains)], metTrains)
@@ -60,17 +79,27 @@ def createTrainTestPred(parameters, testNum):
 
                 first = False
                 testSeqs = []
+                if not parameters.crossValid:
+                    break
 
+    #Output the best metric average and corresponding hyperparameters to a file 
+    #in the paramResults directory
     helpers.outputParamResults(parameters, bestMetAvg, testNum)
     sess.close()
 
+#Train a cnn with all of the data available. Then, run all possible sequences
+#through this trained net and output ones which are well structured - have a
+#low unstructured amount
+#
+#Params: parameters - the hyperparameters that will be used in the algorithm.
+#                     a params() object
+#
 def findWellStruct(parameters):
-    #helpers.genAllSeqs()
     allSeqs = helpers.readAllSeqs()
     shutil.rmtree("bestpredictions")
     os.mkdir("bestpredictions")
     
-    parameters.earlyStop=False
+    parameters.earlyStop=False #Necessary. Otherwise, compiler error
     
     nn_user = nnUser(parameters)
 
@@ -84,6 +113,7 @@ def findWellStruct(parameters):
 
         nn_user.predict(sess, model, allSeqs, "best")
         
+#Main function. Uncomment relevant lines
 def main():
     #parameters = hyperparams.params()
     lastTestNum = 0

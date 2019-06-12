@@ -1,10 +1,14 @@
+#Aidan Fike
+#June 12, 2019
+
+#Helper functions used in the various other files
+
 import os
 import numpy as np
 import tensorflow as tf
 import math
 
-#cnnHelpers
-
+#Return the number of alanines in a given sequence
 def numAla(seq):
     numAla = 0
     for letter in seq:
@@ -12,6 +16,8 @@ def numAla(seq):
             numAla += 1
     return numAla
 
+#Return a boolean if the given sequence or a cyclic equivalent exists in the
+#testSeqs list
 def inSeqs(seq, testSeqs):
     currSeq = seq
     for i in range(len(currSeq)):
@@ -20,6 +26,7 @@ def inSeqs(seq, testSeqs):
         currSeq = currSeq[len(currSeq) - 1] + currSeq[0:len(currSeq) - 1]
     return False
 
+#Create a list of every sequence in allSeqInfo that does not exist in testSeq
 def createTrainSeqs(allSeqInfo, testSeqs):
     train = []
     for seq in allSeqInfo:
@@ -28,32 +35,54 @@ def createTrainSeqs(allSeqInfo, testSeqs):
 
     return train
 
+#Output the information in the passed parameters class to the command line
+def outputParamInfo(parameters, testNum):
+    print "\n\n\n"
+    print "Running Set number ", testNum
+    print "numChannels", parameters.numChannels
+    print "leakSlope", parameters.leakSlope
+    print "filterHeights", parameters.filterHeights
+    print "keepProb", parameters.keep_prob
+    print "numCLayers", parameters.numCLayers
+    print "\n"
+
+#Output a file with the costs outputted during the training of a network
 def outputCostFile(times, costs):
     costFile = open("costs/cost", "w")
     for time in times:
         costFile.write(str(time) + " " + str(costs[time]) +"\n")
     costFile.close()
 
+#Output a file with the metric outputted during the training of a network
 def outputPTest(times, pTest):
     costFile = open("costs/mTest", "w")
     for time in times:
         costFile.write(str(time) + " " + str(pTest[time]) +"\n")
     costFile.close()
 
+#Output a file with the metric outputted during the training of a network
 def outputPTrain(times, pTrain):
     costFile = open("costs/mTrain", "w")
     for time in times:
         costFile.write(str(time) + " " + str(pTrain[time]) +"\n")
     costFile.close()
 
+#Output the parameters used in a given run along with the metric result to a
+#file in the paramResults directory
 def outputParamResults(params, metricResult, testNum):
     paramFile = open("paramResults/testNum"+str(testNum), "w")
     
     paramFile.write("learning_rate " + str(params.learning_rate) + "\n")
+    paramFile.write("lr_decay " + str(params.lr_decay) + "\n")
+    paramFile.write("decayEpoch " + str(params.decay_epoch) + "\n")
+    paramFile.write("nImproveTime " + str(params.nImproveTime) + "\n")
+    paramFile.write("lrThresh " + str(params.lrThresh) + "\n")
+    paramFile.write("largeDecay " + str(params.largeDecay) + "\n")
+    paramFile.write("calcMetStep " + str(params.calcMetStep) + "\n")
     paramFile.write("metricBail " + str(params.pearBail) + "\n")
     paramFile.write("numExtraX " + str(params.numExtraX) + "\n")
     paramFile.write("hiddenNodes " + str(params.numHiddenNodes) + "\n")
-    paramFile.write("convLayers " + str(params.numCLayers) + "\n")
+    paramFile.write("numCLayers " + str(params.numCLayers) + "\n")
     paramFile.write("filterHeights " + str(params.filterHeights) + "\n")
     paramFile.write("numChannels " + str(params.numChannels) + "\n")
     paramFile.write("keepProb " + str(params.keep_prob) + "\n")
@@ -63,8 +92,8 @@ def outputParamResults(params, metricResult, testNum):
 
     paramFile.close()
 
-    return testNum
-
+#Return the number of sequences with known structures that have less than 3
+#alanines. Cyclic equivalents not double counted
 def numValidSet(allSeqInfo):
     doneSeqs = []
     
@@ -81,14 +110,19 @@ def numValidSet(allSeqInfo):
 
     return count
 
+#Calculate a given metric between two sequences of values, one intended to be
+#predicted and the other intended to be true. Options are pearson correlation 
+#coefficient, rmsd, or mean displacement (md)
 def calcMetric(row1, row2, metric):
     preds = []
     true = []
+    #Include everything but the values for the "others" catagory
     for index, val in enumerate(row1):
         if index != 24:
             preds.append(row1[index] * 100.0)
             true.append(row2[index] * 100.0)
                 
+    #Calculate and return the pearson correlation coefficient
     if metric == "pearson":
         meanY = float(sum(true)) / float(len(true))
         meanX = float(sum(preds)) / float(len(preds))
@@ -106,6 +140,7 @@ def calcMetric(row1, row2, metric):
         pCoef = covar / ((float(len(preds)) - 1.0) * math.sqrt(varX * varY)) 
         return pCoef
 
+    #Calculate and return the rmsd
     if metric == "rmsd":
         rmsd = 0.0
         
@@ -114,6 +149,7 @@ def calcMetric(row1, row2, metric):
         rmsd = math.sqrt(rmsd / float(len(preds)))
         return rmsd
 
+    #Calculate and return the mean displacement
     if metric == "md":
         straightMd = 0.0
 
@@ -123,10 +159,13 @@ def calcMetric(row1, row2, metric):
         md = straightMd / float(len(preds))
         return md
     
+#Generate all possible sequences of hexapeptides and 
 def genAllSeqs():
     aminos = parseData.getAminos()
     numX = 6
     allSeqs = []
+
+    #Add every combination of sequences
     for m in range(len(aminos)):
         allSeqs.append(aminos[m])
 
@@ -139,6 +178,7 @@ def genAllSeqs():
 
     deletedSeqs = []
     
+    #Remove cyclic equivalents
     for seq in allSeqs:
         if len(seq) < numX:
             allSeqs.remove(seq)
@@ -150,11 +190,13 @@ def genAllSeqs():
                     deletedSeqs.append(currSeq)
                     allSeqs.remove(currSeq)
 
+    #Output all of the possible sequences into the allSeqs file
     allSeqFile = open("allSeqs", "w")
     for seq in allSeqs:
         allSeqFile.write(seq + "\n")
     allSeqFile.close()
 
+#Read and return a list of the sequences in the allSeqs file
 def readAllSeqs():
     allSeqs = []
 
@@ -164,24 +206,3 @@ def readAllSeqs():
         allSeqs.append(words[0])
 
     return allSeqs
-
-def outputPred(pred, seq, prefix):
-        predFile = open(prefix + "predictions/Out_prediction_" + seq, "w") 
-        if prefix == "best":
-            predFile.write('%10s %10s\n' % ('turn comb','pred'))
-        else:
-            predFile.write('%10s %10s %10s\n' % ('turn comb','pred','true'))
-        for index, percent in enumerate(pred):
-            turnComb = self.allTurnCombs[index]
-            if prefix != "test" and prefix != "train":
-                predFile.write('%10s %10.6f\n' % (turnComb, \
-                    percent * 100.0))
-            else:
-                if turnComb in self.allPops[seq]:
-                    predFile.write('%10s %10.6f %10.6f\n' % (turnComb, \
-                        percent * 100.0,self.allPops[seq][turnComb]))
-                else:
-                    predFile.write('%10s %10.6f %10.6f\n' % (turnComb, \
-                        percent * 100.0,0.0))
-
-        predFile.close()

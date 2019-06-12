@@ -1,3 +1,9 @@
+#Aidan Fike
+#June 12, 2019
+
+#Program to plot the costs, training, and testing accuracies to a photo form
+#and onto terminal
+
 import matplotlib.pyplot as plt
 
 costFile = open("costs/cost", "r")
@@ -21,12 +27,11 @@ for line in mtrainFile:
 print len(costs), len(mtest)
 mtest.pop()
 mtrain.pop()
-mTimes = times[0:len(times):len(times)/len(mtest)]
 fig, ax = plt.subplots(3, 1, sharex='col', sharey='row')
 
 ax[0].scatter(times,costs)
-ax[1].scatter(mTimes,mtest)
-ax[2].scatter(mTimes,mtrain)
+ax[1].scatter(times,mtest)
+ax[2].scatter(times,mtrain)
 plt.xlim(0,len(times))
 
 fig.savefig("costs/all.png")
