@@ -180,7 +180,6 @@ class nnUser():
                         notImprove = 0
                     if self.lr <= self.lrThresh or bestMet - currMet > self.params.pearBail:
                         break
-
                     
         return times, costs, metTest, metTrain, bestMet
 

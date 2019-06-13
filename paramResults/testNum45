@@ -1,0 +1,16 @@
+learning_rate 0.001
+lr_decay 0.97
+decayEpoch 1000
+nImproveTime 1500
+lrThresh 1e-05
+largeDecay 0.1
+calcMetStep 100
+metricBail 0.01
+numExtraX 1
+hiddenNodes 0
+numCLayers 4
+filterHeights [2, 3]
+numChannels [32, 32, 32, 32]
+keepProb [0.6, 0.6, 0.6, 0.6, 0.6]
+leakSlope 0.01
+bestMet 0.7890809940033507

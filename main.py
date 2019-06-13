@@ -112,16 +112,32 @@ def findWellStruct(parameters):
                                                                             outputCost=False)
 
         nn_user.predict(sess, model, allSeqs, "best")
-        
+
+#Search all hyperparams in a grid-fashion. The parameters being searched are in
+#hyperparams.searchParams()
+def gridSearch():
+    allParamSets = hyperparams.searchParams()
+    for index, paramSet in enumerate(allParamSets):
+        createTrainTestPred(paramSet, index + 1 + helpers.getLastTestNum())
+
+#Query the paramResults directory to find metric results where certain
+#hyperparameters were used
+def paramSearch():
+    #featNames = ["lr", "pb", "xX", "hn", "fh", "nc", "kp", "ls", "cl"]
+    featNames = ["kp", "fh"]
+    featValues = [[0.6,0.6,0.6,0.6], [2, 3, 4]]
+    #featNames = ["kp"]
+    #featValues = [[0.6,0.6,0.6,0.6]]
+    hyperparams.searchParamResults(featNames, featValues)
+
+
 #Main function. Uncomment relevant lines
 def main():
     #parameters = hyperparams.findBestHyper()
     #createTrainTestPred(parameters, 0)
 
-    allParamSets = hyperparams.searchParams()
-    for index, paramSet in enumerate(allParamSets):
-        createTrainTestPred(paramSet, index + 1 + helpers.getLastTestNum())
-
+    #gridSearch()
+    paramSearch() 
     #findWellStruct(parameters)
 
 main()

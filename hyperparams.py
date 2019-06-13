@@ -18,8 +18,6 @@ class params():
     lr_decay=0.97
     decay_epoch=1000
 
-
-
     #A boolean for whether early stopping should occur, and relevant
     #parameters. This includes, in order, The number of epochs the network has
     #to improve before a largeDecay occurs on the learning rate. Additionally,
@@ -110,6 +108,71 @@ def searchParams():
             allParamSets.append(newParams)
 
     return allParamSets
+
+#Search the paramResults files for results where the given featNames have the
+#corresponding featValues. Print the filenames and bestMetric average as the
+#result
+def searchParamResults(featNames, featValues):
+    allFileNamesColl = []
+    allBestMets = []
+    for index, featName in enumerate(featNames):
+        bests, filenames = getParamFiles(featNames[index], featValues[index])
+        allFileNamesColl.append(filenames)
+        allBestMets.append(bests)
+
+    curatedNames = []
+    bestMet = 0.0
+    for setNum, fileSet in enumerate(allFileNamesColl):
+        for index, name in enumerate(fileSet):
+            nameIsValid = True
+            for fileSet2 in allFileNamesColl:
+                if fileSet != fileSet2:
+                    if name not in fileSet2:
+                        nameIsValid = False
+            if nameIsValid:
+                if name not in curatedNames:
+                    curatedNames.append(name)
+                    bestMet += allBestMets[setNum][index]
+
+    curatedNames.sort()
+    print bestMet / float(len(curatedNames)), curatedNames
+
+#Return the name and bestmetric of all parameter files with where the
+#passed parameter name has the passed parameter value
+def getParamFiles(paramName, paramValue):
+    files = os.listdir("paramResults")
+
+    bests = []
+    filenames = []
+
+    for filename in files:
+        best, params = getHyperParams(filename)
+        if paramName == "kp" and params.keep_prob == paramValue:
+            bests.append(best) 
+            filenames.append(filename)
+        if paramName == "lr" and params.learning_rate == paramValue:
+            bests.append(best) 
+            filenames.append(filename)
+        if paramName == "xX" and params.numExtraX == paramValue:
+            bests.append(best) 
+            filenames.append(filename)
+        if paramName == "hn" and params.numHiddenNodes == paramValue:
+            bests.append(best) 
+            filenames.append(filename)
+        if paramName == "fh" and params.filterHeights == paramValue:
+            bests.append(best) 
+            filenames.append(filename)
+        if paramName == "nc" and params.numChannels == paramValue:
+            bests.append(best) 
+            filenames.append(filename)
+        if paramName == "ls" and params.leakSlope == paramValue:
+            bests.append(best) 
+            filenames.append(filename)
+        if paramName == "cl" and params.numCLayers == paramValue:
+            bests.append(best) 
+            filenames.append(filename)
+
+    return bests, filenames
 
 #Return all of the parameter sets who have already been evaluated
 def getAllDoneParams():

@@ -163,6 +163,7 @@ class Cnn():
             fdict[self.learning_rate] = learning_rate
         return fdict
 
+    #Getters and Setters
     def getLoss(self):
         return self.loss
 
