@@ -115,16 +115,12 @@ def findWellStruct(parameters):
         
 #Main function. Uncomment relevant lines
 def main():
-    #parameters = hyperparams.params()
-    lastTestNum = 0
-    for name in os.listdir("paramResults"):
-        if int(name[7:]) > lastTestNum:
-            lastTestNum = int(name[7:])
-    
+    #parameters = hyperparams.findBestHyper()
+    #createTrainTestPred(parameters, 0)
 
     allParamSets = hyperparams.searchParams()
     for index, paramSet in enumerate(allParamSets):
-        createTrainTestPred(paramSet, index + 1 + lastTestNum)
+        createTrainTestPred(paramSet, index + 1 + helpers.getLastTestNum())
 
     #findWellStruct(parameters)
 

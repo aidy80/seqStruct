@@ -211,7 +211,7 @@ class nnUser():
                 for index, row in enumerate(result):
                     if row[24] * 100 < 30:
                         print predSeqs[index]
-                        helpers.outputPred(row, predSeqs[index], "best")
+                        self.outputPred(row, predSeqs[index], "best")
             elif goal == "testReturn":
                 metricSum = 0.0
                 for index, row in enumerate(result):
@@ -228,7 +228,7 @@ class nnUser():
                 return metricSum
             else:
                 for index, row in enumerate(result):
-                    helpers.outputPred(row, predSeqs[index], goal)
+                    self.outputPred(row, predSeqs[index], goal)
 
     #Return the true population of a given sequence
     def findTruePop(self, seq):

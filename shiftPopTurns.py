@@ -1,3 +1,9 @@
+#Aidan Fike
+#June 12, 2019
+
+#Program to create cyclic equivalents for all of the structural ensembles found
+#through Be-Meta
+
 import os
 
 def numA(seq):

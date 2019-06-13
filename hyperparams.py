@@ -6,6 +6,7 @@
 #curious about testing
 
 import numpy as np
+import os
 
 #A class to contain all relevant hyperparameter variables in one place. These
 #values are the defaults
@@ -13,7 +14,7 @@ class params():
     #The learning rate, number of epochs, and percentage the learning rate
     #decays every decay epoch steps
     learning_rate = 0.001
-    n_epochs = 15000
+    n_epochs = 20000
     lr_decay=0.97
     decay_epoch=1000
 
@@ -71,10 +72,10 @@ def searchParams():
     pearBail = [0.01]
     numExtraX = [1]
     numHiddenNodes = [0]
-    numCLayers = [3,4]
-    numChannels = [16,64,128]
-    filterHeights = [[2,3],[2,3,4]]
-    keep_prob = [0.6, 0.7]
+    numCLayers = [3,4,5]
+    numChannels = [16,32,64]
+    filterHeights = [[2,3],[2]]
+    keep_prob = [0.6, 0.65]
     leakSlope = [0.01]
 
     testingFeatures = [lr, pearBail, numExtraX, numHiddenNodes, 
@@ -97,12 +98,78 @@ def searchParams():
 
     #Transform the grid of hyperparameters into a set of objects
     allParamSets = []
+    allDoneParams = getAllDoneParams()
     for row in allParamCombs:
         newParams = params()
         setParams(newParams, featNames, row)
-        allParamSets.append(newParams)
+        notDone = True
+        for doneParams in allDoneParams:
+            if areEqual(newParams, doneParams):
+                notDone = False
+        if notDone:
+            allParamSets.append(newParams)
 
     return allParamSets
+
+#Return all of the parameter sets who have already been evaluated
+def getAllDoneParams():
+    files = os.listdir("paramResults")
+
+    allParams = []
+    for filename in files:
+        best, params = getHyperParams(filename)
+        allParams.append(params)
+    return allParams
+
+
+#Check if relevant parameters from two sets of hyperparameters are equal
+def areEqual(params1, params2):
+    equal = True
+    if params1.learning_rate != params2.learning_rate:
+        equal = False
+    if params1.lr_decay != params2.lr_decay:
+        equal = False
+    if params1.decay_epoch != params2.decay_epoch:
+        equal = False
+    if params1.pearBail != params2.pearBail:
+        equal = False
+    if params1.numExtraX != params2.numExtraX:
+        equal = False
+    if params1.numHiddenNodes != params2.numHiddenNodes:
+        equal = False
+    if params1.numCLayers != params2.numCLayers:
+        equal = False
+    if params1.numChannels != params2.numChannels:
+        equal = False
+    if params1.filterHeights != params2.filterHeights:
+        equal = False
+    if params1.keep_prob != params2.keep_prob:
+        equal = False
+    if params1.leakSlope != params2.leakSlope:
+        equal = False
+
+    return equal
+
+#Take a params object and set the values stored in featNames to the values in
+#featValues
+#
+#Params: params - The params object which will be augmented
+#        featNames - codes indicating the names of the features
+#        featValues - the values that the features should be set to
+def setParams(params, featNames, featValues):
+    for i, name in enumerate(featNames):
+        if name == "lr":
+            params.learning_rate = featValues[i]
+        elif name == "pb":
+            params.pearBail = featValues[i]
+        elif name == "xX":
+            params.numExtraX = featValues[i]
+        elif name == "hn":
+            params.numHiddenNodes = featValues[i]
+        elif name == "cl":
+            params.numCLayers = featValues[i]
+
+    return equal
 
 #Take a params object and set the values stored in featNames to the values in
 #featValues
@@ -151,3 +218,83 @@ def makeZerosList(height, width):
         for j in range(width):
             zeros[i].append(0)
     return zeros
+
+#Find and return the best found set of hyperparameters in paramResults
+def findBestHyper():
+    files = os.listdir("paramResults")
+
+    bestOfBest = -1
+    bestParams = -1
+    for filename in files:
+        best, params = getHyperParams(filename)
+        if best > bestOfBest:
+            bestOfBest = best
+            bestParams = params
+
+    return bestParams
+
+    
+#Read in a parameter test file, return the hyperparameters and best metric
+#accuracy
+def getHyperParams(filename):
+    paramFile = open("paramResults/" + filename, 'r')
+    hyper = params()
+    bestMet = -1
+
+    for line in paramFile:
+        words = line.split()
+        if words[0] == "learning_rate":
+            hyper.learning_rate = float(words[1])
+        elif words[0] == "lr_decay":
+            hyper.lr_decay = float(words[1])
+        elif words[0] == "decayEpoch":
+            hyper.decay_epoch = int(words[1])
+        elif words[0] == "nImproveTime":
+            hyper.nImproveTime = int(words[1])
+        elif words[0] == "lrThresh":
+            hyper.lrThresh = float(words[1])
+        elif words[0] == "largeDecay":
+            hyper.largeDecay = float(words[1])
+        elif words[0] == "calcMetStep":
+            hyper.calcMetStep = int(words[1])
+        elif words[0] == "metricBail":
+            hyper.pearBail = float(words[1])
+        elif words[0] == "numExtraX":
+            hyper.numExtraX = int(words[1])
+        elif words[0] == "hiddenNodes":
+            hyper.numHiddenNodes = int(words[1])
+        elif words[0] == "numCLayers":
+            hyper.numCLayers = int(words[1])
+        elif words[0] == "leakSlope":
+            hyper.leakSlope = float(words[1])
+        elif words[0] == "filterHeights":
+            words1 = line.split('[')
+            words2 = words1[1].split(',')
+            words2[len(words2) - 1] = words2[len(words2) - 1].split(']')[0]
+            for index in range(len(words2)):
+                words2[index] = int(words2[index])
+            hyper.filterHeights = words2
+        elif words[0] == "numChannels":
+            words1 = line.split('[')
+            words2 = words1[1].split(',')
+            words2[len(words2) - 1] = words2[len(words2) - 1].split(']')[0]
+            for index in range(len(words2)):
+                words2[index] = int(words2[index])
+            hyper.numChannels = words2
+        elif words[0] == "keepProb":
+            words1 = line.split('[')
+            words2 = words1[1].split(',')
+            words2[len(words2) - 1] = words2[len(words2) - 1].split(']')[0]
+            for index in range(len(words2)):
+                words2[index] = float(words2[index])
+            hyper.keep_prob = words2
+
+
+        elif words[0] == "bestMet":
+            bestMet = float(words[1])
+        else:
+            print filename
+            print words[0], " not a valid option\n"
+
+    paramFile.close()
+    return bestMet,hyper

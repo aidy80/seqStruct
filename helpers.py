@@ -49,22 +49,22 @@ def outputParamInfo(parameters, testNum):
 #Output a file with the costs outputted during the training of a network
 def outputCostFile(times, costs):
     costFile = open("costs/cost", "w")
-    for time in times:
-        costFile.write(str(time) + " " + str(costs[time]) +"\n")
+    for index,time in enumerate(times):
+        costFile.write(str(time) + " " + str(costs[index]) +"\n")
     costFile.close()
 
 #Output a file with the metric outputted during the training of a network
 def outputPTest(times, pTest):
     costFile = open("costs/mTest", "w")
-    for time in times:
-        costFile.write(str(time) + " " + str(pTest[time]) +"\n")
+    for index,time in enumerate(times):
+        costFile.write(str(time) + " " + str(pTest[index]) +"\n")
     costFile.close()
 
 #Output a file with the metric outputted during the training of a network
 def outputPTrain(times, pTrain):
     costFile = open("costs/mTrain", "w")
-    for time in times:
-        costFile.write(str(time) + " " + str(pTrain[time]) +"\n")
+    for index, time in enumerate(times):
+        costFile.write(str(time) + " " + str(pTrain[index]) +"\n")
     costFile.close()
 
 #Output the parameters used in a given run along with the metric result to a
@@ -158,6 +158,17 @@ def calcMetric(row1, row2, metric):
 
         md = straightMd / float(len(preds))
         return md
+
+#Go through the paramResults directory and find the last testNum that was done
+def getLastTestNum():
+    lastTestNum = 0
+    for name in os.listdir("paramResults"):
+        if int(name[7:]) > lastTestNum:
+            lastTestNum = int(name[7:])
+
+    return lastTestNum
+    
+
     
 #Generate all possible sequences of hexapeptides and 
 def genAllSeqs():

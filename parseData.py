@@ -1,8 +1,16 @@
+#Aidan Fike
+#June 12, 2019
+
+#Parse relevent data to be used for the neural network
+
 import os
 
+#Return an integer:amino acid dictionary
 def getAminos():
     return  {0: 'A', 1: 'G', 2: 'V', 3: 'S', 4: 'F', 5: 'N', 6: 'R', 7: 'D'}
 
+#Get normalized energy information from the energy file and return the result in a
+#dictionary form
 def getEnergyInfo():
     therm = os.listdir("energy/normEn/")
     thermDirs = []
@@ -34,6 +42,7 @@ def getEnergyInfo():
 
     return energyInfo
 
+#Get and return all of the information from the energy directory
 def getSolEnergyInfo():
     therm = os.listdir("energy/allEnergy/")
     thermDirs = []
@@ -78,6 +87,7 @@ def getSolEnergyInfo():
 
     return energyInfo
 
+#Get and return information about the known structural ensembles
 def getSeqInfo():
     allFiles = os.listdir("data")
 
@@ -112,7 +122,8 @@ def getSeqInfo():
 
     return allSeqInfo, allTurnCombs
 
-
+#Create and return a dictionary that contains the populations for all sequences
+#of a given turn combination
 def getTurnCombPops(allSeqInfo, turnComb):
     turnPops = {}
     for seq in allSeqInfo:

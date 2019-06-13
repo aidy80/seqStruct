@@ -48,15 +48,18 @@ class Cnn():
 
     #Set up the architecture for the convolutional neural network
     #
-    #Params: numChannels - an array containing the number of channels at each
+    #Params: nnInput - the instances that are passed into the network. 3D array 
+    #                  of floats: first dimension is number of instances,
+    #                  second is number of amino acids, 3rd is amino acid choices
+    #        numChannels - an array containing the number of channels at each
     #                      layer
     #        numCLayers - the number of convolutional layers. Integer
     #        filterHeights - the various heights of the filters. Array of ints
     #        leakSlope - the slope of the leaky relu
-    def setUpArch(self, numChannels, numCLayers, filterHeights, leakSlope):
+    def setUpArch(self, nnInput, numChannels, numCLayers, filterHeights, leakSlope):
 
         #Create a cnn, gaining the last layer of the cnn as a return
-        cnnOut = self.cnn(self.X, numChannels, numCLayers, filterHeights, leakSlope)
+        cnnOut = self.cnn(nnInput, numChannels, numCLayers, filterHeights, leakSlope)
     
         #Parameters for the fully connected layer
         fcWordDim = (len(filterHeights) * numChannels[-1] + len(self.aminos))\
@@ -120,7 +123,7 @@ class Cnn():
             #the variable u, an series of values created by the output of a
             #linear layer
             inputDim = layerIn.get_shape()[2].value
-            layerInB = tf.reshape(layerIn, r[-1, inputDim])
+            layerInB = tf.reshape(layerIn, [-1, inputDim])
             with tf.variable_scope("cnn_gates"):
                 if i > 1:
                     tf.get_variable_scope().reuse_variables()
