@@ -14,4 +14,5 @@ numChannels [32, 32, 32, 32, 32]
 keepProb [0.6, 0.6, 0.6, 0.6, 0.6, 0.6]
 leakSlope 0.01
 metric pearson
-bestMet 0.798891689705963
+batchSize 27
+bestMet 0.7835595378591551

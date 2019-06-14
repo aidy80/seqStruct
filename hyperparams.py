@@ -26,7 +26,7 @@ class params():
     earlyStop=True
     nImproveTime=1500
     largeDecay=0.5
-    pearBail = 0.013
+    pearBail = 0.025
     lrThresh=1e-4
     calcMetStep = 100
 
@@ -35,7 +35,7 @@ class params():
 
     #The size of the validation set and a boolean for whether cross validation
     #should be used
-    batchSize = 18
+    batchSize = 27
     crossValid=True
 
     #Output the best model in the bestModel directory
@@ -78,10 +78,11 @@ def searchParams():
     filterHeights = [[2,3],[2]]
     keep_prob = [0.6, 0.65]
     leakSlope = [0.01]
+    batchSize = [27]
 
-    testingFeatures = [lr, pearBail, numExtraX, numHiddenNodes, \
+    testingFeatures = [lr, pearBail, numExtraX, numHiddenNodes, batchSize,\
             filterHeights, numChannels, keep_prob, leakSlope, numCLayers]
-    featNames = ["lr", "pb", "xX", "hn", "fh", "nc", "kp", "ls", "cl"]
+    featNames = ["lr", "pb", "xX", "hn", "bs", "fh", "nc", "kp", "ls", "cl"]
 
     #Create the grid of hyperparameters in the form of a 2D list
     paramLenList = []
@@ -248,6 +249,8 @@ def setParams(params, featNames, featValues):
             params.keep_prob= [params.constKeepProb]*(params.numCLayers+1)
         elif name == "fh":
             params.filterHeights = featValues[i]
+        elif name == "bs":
+            params.batchSize = featValues[i]
         elif name == "nc":
             params.constNumChannels = featValues[i]
         elif name == "kp":
@@ -312,6 +315,8 @@ def getHyperParams(filename):
             hyper.nImproveTime = int(words[1])
         elif words[0] == "lrThresh":
             hyper.lrThresh = float(words[1])
+        elif words[0] == "batchSize":
+            hyper.batchSize = int(words[1])
         elif words[0] == "largeDecay":
             hyper.largeDecay = float(words[1])
         elif words[0] == "calcMetStep":

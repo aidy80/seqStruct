@@ -6,6 +6,7 @@
 
 import os
 
+#Return the number of alanine in a given sequence
 def numA(seq):
     numAla = 0
     for letter in seq:
@@ -13,6 +14,10 @@ def numA(seq):
             numAla += 1
     return numAla
 
+#Shift a given sequence to the "left" and convert its sequence ensemble. This
+#means that X1_X2_X3 -> X2_X3_X1. numShifts is the number of times you want 
+#this left-shift to occur. If aug=True, then it will shift a sequence from the
+#data directory, otherwise it will shift a sequence from the rawData directory
 def shiftLeft(seq, numShifts, aug):
     if numShifts == 0:
         seqInfo = readFile(seq, aug) 
@@ -62,6 +67,9 @@ def shiftLeft(seq, numShifts, aug):
     else:
         print "Not yet implemented\n"
 
+#Shift a given sequence to the "left" and convert its sequence ensemble. This
+#means that X1_X2_X3 -> X3_X1_X2. numShifts is the number of times you want 
+#this right-shift to occur
 def shiftRight(seq, numShifts, aug):
     if numShifts == 0:
         seqInfo = readFile(seq, aug) 
@@ -95,6 +103,7 @@ def shiftRight(seq, numShifts, aug):
     else:
         print "Not yet implemented\n"
 
+#Output the sequence ensemble of a given sequence
 def writeSeq(seq, seqInfo):
     newFile = open("data/Out_population_" + seq + ".txt", "w")
     newFile.write('%6s %6s %10s %10s\n' % ('turn 1', 'turn 2','counts', 'population'))
@@ -104,6 +113,8 @@ def writeSeq(seq, seqInfo):
         newFile.write('%6s %6s %10s %10s\n' % (turns[0], turns[1],'0',str(seqInfo[turnComb])))
     newFile.close()
 
+#Read the file of a given sequence ensemble. If aug=True, read it from the data
+#directory, otherwise from the rawData directory
 def readFile(seq, aug):
     popFile = ''
     if aug:
@@ -121,39 +132,43 @@ def readFile(seq, aug):
 
     return seqInfo
 
-allFiles = os.listdir("rawData")
+#Make every possible cyclic equivalents of all files in the rawData directory
+def main():
+    allFiles = os.listdir("rawData")
 
-for name in allFiles:
-    seq = name[15:21]
-    if seq[0:3] == "AAA":
-        shiftLeft(seq, 3, False)
-    else:
-        shiftRight(seq, 0, False)
+    for name in allFiles:
+        seq = name[15:21]
+        if seq[0:3] == "AAA":
+            shiftLeft(seq, 3, False)
+        else:
+            shiftRight(seq, 0, False)
 
-allRefinedFilesOne = os.listdir("data")
+    allRefinedFilesOne = os.listdir("data")
 
-for name in allRefinedFilesOne:
-    seq = name[15:21]
-    shiftRight(seq, 1, True)
-    shiftLeft(seq, 1, True)
+    for name in allRefinedFilesOne:
+        seq = name[15:21]
+        shiftRight(seq, 1, True)
+        shiftLeft(seq, 1, True)
 
-allRefinedFilesTwo = os.listdir("data")
-refinedFiles = []
-for filename in allRefinedFilesTwo:
-    if filename not in allRefinedFilesOne:
-        refinedFiles.append(filename)
+    allRefinedFilesTwo = os.listdir("data")
+    refinedFiles = []
+    for filename in allRefinedFilesTwo:
+        if filename not in allRefinedFilesOne:
+            refinedFiles.append(filename)
 
-for name in refinedFiles:
-    seq = name[15:21]
-    shiftRight(seq, 1, True)
-    shiftLeft(seq, 1, True)
+    for name in refinedFiles:
+        seq = name[15:21]
+        shiftRight(seq, 1, True)
+        shiftLeft(seq, 1, True)
 
-allRefinedFilesThree = os.listdir("data")
-refinedFiles = []
-for filename in allRefinedFilesThree:
-    if filename not in allRefinedFilesTwo:
-        refinedFiles.append(filename)
+    allRefinedFilesThree = os.listdir("data")
+    refinedFiles = []
+    for filename in allRefinedFilesThree:
+        if filename not in allRefinedFilesTwo:
+            refinedFiles.append(filename)
 
-for name in refinedFiles:
-    seq = name[15:21]
-    shiftRight(seq, 1, True)
+    for name in refinedFiles:
+        seq = name[15:21]
+        shiftRight(seq, 1, True)
+
+main()

@@ -1,3 +1,13 @@
+#Aidan Fike
+#June 12, 2019
+
+#Plot data predicted from the most recent neural network training/testing session.
+#This can be done with either testing or training data by running
+#
+#python scatter.py test
+#or
+#python scatter.py train
+
 import matplotlib.pyplot as plt
 import matplotlib
 import numpy as np
@@ -13,19 +23,13 @@ rcParams.update({'figure.autolayout': True})
 
 allFiles = os.listdir(sys.argv[1] + "predictions")
 
-domain = []
-xEqualY = []
-
+#Return the number of alanine in a passed sequence
 def numA(seq):
     numAla = 0
     for letter in seq:
         if letter == 'A':
             numAla += 1
     return numAla
-
-for i in range(1000):
-    domain.append(float(i) / 100.0)
-    xEqualY.append(float(i) / 100.0)
 
 pCoefSum = 0.0
 rmsdSum = 0.0
@@ -40,8 +44,10 @@ minP = 1.0
 maxName=''
 maxP = -1.0
 
+#For each predicted structural ensemble with less than 3 alanine, calculate its 
+#pearson correlation coefficient, rmsd, and md (mean displacement). 
+#Additionally, plot the predicted in sequence information.
 for name in allFiles:
-
     normSeqName = name[15:21]
 
     predFile = open(sys.argv[1] + "predictions/" + name, "r")
@@ -89,7 +95,7 @@ for name in allFiles:
         numNames+=1
         print("pearson: " + name + " " + str(pCoef))
     
-    if normSeqName == "SVNNGA":
+    if normSeqName == "RSRNDV":
         font = {'family' : 'normal', 
                 'size'   : 28}
         matplotlib.rc('font', **font)
@@ -110,14 +116,14 @@ for name in allFiles:
         for index, pred in enumerate(preds):
             plt.scatter(pred, true[index], color=next(colors))
         xPos=0.5
-        yPos=max(true) - 1
+        yPos=max(true) - 0.4
         label = "p = %5.3f" % pCoef
         plt.annotate(label, xy=(xPos, yPos)) 
         plt.tight_layout()
         preds.append(max(preds)+.6)
         predY.append(max(predY)+.6)
         plt.plot(np.array(preds), np.array(predY), label = 'Line of Perfect Prediction')
-        #plt.show()
+        plt.show()
 
 
     print

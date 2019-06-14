@@ -1,3 +1,10 @@
+#Aidan Fike
+#June 12, 2019
+
+#Use a Support vector regression to try to predict the sequence ensemble of
+#new hexapeptide sequences. Found to be less effective than the neural network
+#approach
+
 import sklearn
 from sklearn import svm
 from sklearn.model_selection import GridSearchCV
