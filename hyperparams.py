@@ -35,7 +35,7 @@ class params():
 
     #The size of the validation set and a boolean for whether cross validation
     #should be used
-    batchSize = 25
+    batchSize = 18
     crossValid=True
 
     #Output the best model in the bestModel directory
@@ -177,6 +177,9 @@ def getParamFiles(paramName, paramValue):
         if paramName == "met" and params.metric == paramValue:
             bests.append(best) 
             filenames.append(filename)
+        if paramName == "bs" and params.batchSize == paramValue:
+            bests.append(best) 
+            filenames.append(filename)
 
 
     return bests, filenames
@@ -216,6 +219,8 @@ def areEqual(params1, params2):
         equal = False
     if params1.leakSlope != params2.leakSlope:
         equal = False
+    if params1.batchSize != params2.batchSize:
+        equal = False
     if params1.metric != params2.metric:
         equal = False
 
@@ -251,6 +256,8 @@ def setParams(params, featNames, featValues):
             params.leakSlope = featValues[i]
         elif name == "met":
             params.metric = featValues[i]
+        elif name == "bs":
+            params.batchSize = featValues[i]
         else:
             print name, " is invalid thus far"
 

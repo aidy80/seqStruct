@@ -5,8 +5,8 @@ turn 1 turn 2     counts population
    I_0  IIp_3          0   4.092718
  IIp_0  IIp_3          0   0.397992
  IIp_0   Ip_3          0   0.051199
-  II_0   II_3          0   0.661587
    I_0    I_3          0    6.98066
+  II_0   II_3          0   0.661587
   Ip_1   II_4          0   0.103998
  IIp_0    I_3          0   7.752645
  IIp_1  IIp_4          0     0.0024

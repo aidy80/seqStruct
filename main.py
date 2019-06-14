@@ -123,9 +123,9 @@ def gridSearch():
 #Query the paramResults directory to find metric results where certain
 #hyperparameters were used
 def paramSearch():
-    #featNames = ["lr", "pb", "xX", "hn", "fh", "nc", "kp", "ls", "cl"]
+    #featNames = ["lr", "pb", "xX", "hn", "fh", "nc", "kp", "ls", "cl", "met", "bs"]
     featNames = ["kp", "fh"]
-    featValues = [[0.6,0.6,0.6,0.6], [2, 3, 4]]
+    featValues = [[0.6,0.6,0.6,0.6], [2, 3]]
     #featNames = ["kp"]
     #featValues = [[0.6,0.6,0.6,0.6]]
     hyperparams.searchParamResults(featNames, featValues)

@@ -89,6 +89,7 @@ def outputParamResults(params, metricResult, testNum):
     paramFile.write("keepProb " + str(params.keep_prob) + "\n")
     paramFile.write("leakSlope " + str(params.leakSlope) + "\n")
     paramFile.write("metric " + str(params.metric) + "\n")
+    paramFile.write("batchSize " + str(params.batchSize) + "\n")
     
     paramFile.write("bestMet " + str(metricResult) + "\n")
 
