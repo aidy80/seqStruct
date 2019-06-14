@@ -31,6 +31,10 @@ class nnUser():
         self.params = params
         
         #Import hyperparameters
+        self.metric = params.metric
+        if self.metric != "pearson" and self.metric != "md" and self.metric != "rmsd":
+            print self.metric, "Not yet implemented. Add it to the predict function"
+
         self.calcMetStep = params.calcMetStep
         self.lr_decay = params.lr_decay
         self.lr = params.learning_rate
@@ -166,7 +170,8 @@ class nnUser():
                 #The testing accuracy falls deeply below the best metric, stop
                 #training
                 if(self.params.earlyStop):
-                    if currMet > bestMet:
+                    if (self.metric == "pearson" and currMet > bestMet) or \
+                       ((self.metric == "md" or self.metric == "rmsd") and currMet < bestMet):
                         print currMet, bestMet
                         bestMet = currMet
                         if self.params.saveBest:
@@ -215,14 +220,14 @@ class nnUser():
                 metricSum = 0.0
                 for index, row in enumerate(result):
                     metricSum += helpers.calcMetric(row, \
-                            self.findTruePop(predSeqs[index]),"pearson")
+                            self.findTruePop(predSeqs[index]),self.metric)
                 metricSum /= float(result.shape[0])
                 return metricSum
             elif goal == "trainReturn":
                 metricSum = 0.0
                 for index, row in enumerate(result):
                     metricSum += helpers.calcMetric(row, \
-                            self.findTruePop(predSeqs[index]),"pearson")
+                            self.findTruePop(predSeqs[index]),self.metric)
                 metricSum /= float(result.shape[0])
                 return metricSum
             else:

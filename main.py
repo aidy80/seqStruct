@@ -1,5 +1,5 @@
 #Aidan Fike
-#June 11, 2019
+#June 12, 2019
 
 # Main program. Has options to test the accuracy of a given set of
 # hyperparameters of a convolution neural network. It also has the capability
@@ -118,7 +118,7 @@ def findWellStruct(parameters):
 def gridSearch():
     allParamSets = hyperparams.searchParams()
     for index, paramSet in enumerate(allParamSets):
-        createTrainTestPred(paramSet, index + 1 + helpers.getLastTestNum())
+        createTrainTestPred(paramSet, 1 + helpers.getLastTestNum())
 
 #Query the paramResults directory to find metric results where certain
 #hyperparameters were used
@@ -133,11 +133,11 @@ def paramSearch():
 
 #Main function. Uncomment relevant lines
 def main():
-    #parameters = hyperparams.findBestHyper()
-    #createTrainTestPred(parameters, 0)
+    parameters = hyperparams.findBestHyper()
+    createTrainTestPred(parameters, 0)
 
     #gridSearch()
-    paramSearch() 
+    #paramSearch() 
     #findWellStruct(parameters)
 
 main()

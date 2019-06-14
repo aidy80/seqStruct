@@ -1,5 +1,5 @@
 #Aidan Fike
-#June 11, 2019
+#June 12, 2019
 
 #Class implementing a convolutional neural network
 

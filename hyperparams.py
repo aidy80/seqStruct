@@ -25,10 +25,13 @@ class params():
     #below pearBail of the best recorded validation accuracy, stop training
     earlyStop=True
     nImproveTime=1500
-    largeDecay=0.1
+    largeDecay=0.5
     pearBail = 0.013
-    lrThresh=1e-5
+    lrThresh=1e-4
     calcMetStep = 100
+
+    #The metric used to evaluate the model. Either pearson, md, or rmsd
+    metric = "pearson"
 
     #The size of the validation set and a boolean for whether cross validation
     #should be used
@@ -76,7 +79,7 @@ def searchParams():
     keep_prob = [0.6, 0.65]
     leakSlope = [0.01]
 
-    testingFeatures = [lr, pearBail, numExtraX, numHiddenNodes, 
+    testingFeatures = [lr, pearBail, numExtraX, numHiddenNodes, \
             filterHeights, numChannels, keep_prob, leakSlope, numCLayers]
     featNames = ["lr", "pb", "xX", "hn", "fh", "nc", "kp", "ls", "cl"]
 
@@ -171,6 +174,10 @@ def getParamFiles(paramName, paramValue):
         if paramName == "cl" and params.numCLayers == paramValue:
             bests.append(best) 
             filenames.append(filename)
+        if paramName == "met" and params.metric == paramValue:
+            bests.append(best) 
+            filenames.append(filename)
+
 
     return bests, filenames
 
@@ -183,7 +190,6 @@ def getAllDoneParams():
         best, params = getHyperParams(filename)
         allParams.append(params)
     return allParams
-
 
 #Check if relevant parameters from two sets of hyperparameters are equal
 def areEqual(params1, params2):
@@ -210,27 +216,8 @@ def areEqual(params1, params2):
         equal = False
     if params1.leakSlope != params2.leakSlope:
         equal = False
-
-    return equal
-
-#Take a params object and set the values stored in featNames to the values in
-#featValues
-#
-#Params: params - The params object which will be augmented
-#        featNames - codes indicating the names of the features
-#        featValues - the values that the features should be set to
-def setParams(params, featNames, featValues):
-    for i, name in enumerate(featNames):
-        if name == "lr":
-            params.learning_rate = featValues[i]
-        elif name == "pb":
-            params.pearBail = featValues[i]
-        elif name == "xX":
-            params.numExtraX = featValues[i]
-        elif name == "hn":
-            params.numHiddenNodes = featValues[i]
-        elif name == "cl":
-            params.numCLayers = featValues[i]
+    if params1.metric != params2.metric:
+        equal = False
 
     return equal
 
@@ -262,6 +249,8 @@ def setParams(params, featNames, featValues):
             params.constKeepProb = featValues[i]
         elif name == "ls":
             params.leakSlope = featValues[i]
+        elif name == "met":
+            params.metric = featValues[i]
         else:
             print name, " is invalid thus far"
 
@@ -330,6 +319,8 @@ def getHyperParams(filename):
             hyper.numCLayers = int(words[1])
         elif words[0] == "leakSlope":
             hyper.leakSlope = float(words[1])
+        elif words[0] == "metric":
+            hyper.metric = words[1]
         elif words[0] == "filterHeights":
             words1 = line.split('[')
             words2 = words1[1].split(',')
@@ -352,12 +343,10 @@ def getHyperParams(filename):
                 words2[index] = float(words2[index])
             hyper.keep_prob = words2
 
-
         elif words[0] == "bestMet":
             bestMet = float(words[1])
         else:
-            print filename
-            print words[0], " not a valid option\n"
+            print filename, words[0], " not a valid option\n"
 
     paramFile.close()
     return bestMet,hyper

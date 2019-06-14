@@ -44,6 +44,7 @@ def outputParamInfo(parameters, testNum):
     print "filterHeights", parameters.filterHeights
     print "keepProb", parameters.keep_prob
     print "numCLayers", parameters.numCLayers
+    print "metric", parameters.metric
     print "\n"
 
 #Output a file with the costs outputted during the training of a network
@@ -70,7 +71,7 @@ def outputPTrain(times, pTrain):
 #Output the parameters used in a given run along with the metric result to a
 #file in the paramResults directory
 def outputParamResults(params, metricResult, testNum):
-    paramFile = open("paramResults/testNum"+str(testNum), "w")
+    paramFile = open("paramResults/testNum"+str(testNum).zfill(3), "w")
     
     paramFile.write("learning_rate " + str(params.learning_rate) + "\n")
     paramFile.write("lr_decay " + str(params.lr_decay) + "\n")
@@ -87,6 +88,7 @@ def outputParamResults(params, metricResult, testNum):
     paramFile.write("numChannels " + str(params.numChannels) + "\n")
     paramFile.write("keepProb " + str(params.keep_prob) + "\n")
     paramFile.write("leakSlope " + str(params.leakSlope) + "\n")
+    paramFile.write("metric " + str(params.metric) + "\n")
     
     paramFile.write("bestMet " + str(metricResult) + "\n")
 
