@@ -44,6 +44,10 @@ minP = 1.0
 maxName=''
 maxP = -1.0
 
+preds = []
+predY = []
+true = []
+
 #For each predicted structural ensemble with less than 3 alanine, calculate its 
 #pearson correlation coefficient, rmsd, and md (mean displacement). 
 #Additionally, plot the predicted in sequence information.
@@ -52,9 +56,6 @@ for name in allFiles:
 
     predFile = open(sys.argv[1] + "predictions/" + name, "r")
 
-    preds = []
-    true = []
-    predY = []
     for line in predFile:
         words = line.split()
         if words[0] != "turn" and words[0] != 'mse:' and words[0] != 'other':
@@ -95,7 +96,7 @@ for name in allFiles:
         numNames+=1
         print("pearson: " + name + " " + str(pCoef))
     
-    if normSeqName == "RSRNDV":
+    if normSeqName == "VAFFRD":
         font = {'family' : 'normal', 
                 'size'   : 28}
         matplotlib.rc('font', **font)
@@ -118,7 +119,7 @@ for name in allFiles:
         xPos=0.5
         yPos=max(true) - 0.4
         label = "p = %5.3f" % pCoef
-        plt.annotate(label, xy=(xPos, yPos)) 
+        #plt.annotate(label, xy=(xPos, yPos)) 
         plt.tight_layout()
         preds.append(max(preds)+.6)
         predY.append(max(predY)+.6)

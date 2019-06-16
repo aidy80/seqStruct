@@ -130,14 +130,14 @@ def paramSearch():
     #featValues = [[0.6,0.6,0.6,0.6]]
     hyperparams.searchParamResults(featNames, featValues)
 
-
 #Main function. Uncomment relevant lines
 def main():
-    parameters = hyperparams.findBestHyper()
-    createTrainTestPred(parameters, 0)
+    #parameters = hyperparams.findBestHyper()
+    parameters = hyperparams.params()
+    #createTrainTestPred(parameters, 0)
 
     #gridSearch()
     #paramSearch() 
-    #findWellStruct(parameters)
+    findWellStruct(parameters)
 
 main()

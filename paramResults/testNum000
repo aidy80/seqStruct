@@ -2,17 +2,17 @@ learning_rate 0.001
 lr_decay 0.97
 decayEpoch 1000
 nImproveTime 1500
-lrThresh 1e-05
-largeDecay 0.1
+lrThresh 0.0001
+largeDecay 0.5
 calcMetStep 100
-metricBail 0.01
+metricBail 0.025
 numExtraX 1
 hiddenNodes 0
 numCLayers 5
 filterHeights [2, 3]
-numChannels [32, 32, 32, 32, 32]
+numChannels [16, 16, 16, 16, 16]
 keepProb [0.6, 0.6, 0.6, 0.6, 0.6, 0.6]
 leakSlope 0.01
 metric pearson
-batchSize 27
-bestMet 0.7835595378591551
+batchSize 20
+bestMet 0.795338334691801

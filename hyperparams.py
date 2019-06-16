@@ -14,20 +14,20 @@ class params():
     #The learning rate, number of epochs, and percentage the learning rate
     #decays every decay epoch steps
     learning_rate = 0.001
-    n_epochs = 20000
-    lr_decay=0.97
-    decay_epoch=1000
+    n_epochs = 5000
+    lr_decay = 0.97
+    decay_epoch = 1000
 
     #A boolean for whether early stopping should occur, and relevant
     #parameters. This includes, in order, The number of epochs the network has
     #to improve before a largeDecay occurs on the learning rate. Additionally,
     #if the learning rate drops below lrThresh or the validation accuracy falls
     #below pearBail of the best recorded validation accuracy, stop training
-    earlyStop=True
-    nImproveTime=1500
-    largeDecay=0.5
+    earlyStop = True
+    nImproveTime = 1500
+    largeDecay = 0.5
     pearBail = 0.025
-    lrThresh=1e-4
+    lrThresh = 1e-4
     calcMetStep = 100
 
     #The metric used to evaluate the model. Either pearson, md, or rmsd
@@ -35,11 +35,11 @@ class params():
 
     #The size of the validation set and a boolean for whether cross validation
     #should be used
-    batchSize = 27
-    crossValid=True
+    batchSize = 20
+    crossValid = True
 
     #Output the best model in the bestModel directory
-    saveBest=False
+    saveBest = True
 
     #The number of amino acids in the instances, and the number of extra amino
     #acids that are added to prevent weirdness of representing a circle as a
@@ -51,9 +51,9 @@ class params():
     #layers, the heights of the filters and the number of channels for each
     #filter height. The dropout rate for each layer. The slope of the leaky
     #relu function
-    numCLayers = 3
+    numCLayers = 5
     filterHeights = [2,3]
-    constNumChannels = 64
+    constNumChannels = 16
     numChannels = [constNumChannels]*numCLayers
     constKeepProb = 0.6
     keep_prob=[constKeepProb]*(numCLayers+1)
