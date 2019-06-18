@@ -41,6 +41,9 @@ class params():
     #Output the best model in the bestModel directory
     saveBest = True
 
+    #Whether to print costs to command line
+    verbose = False
+
     #The number of amino acids in the instances, and the number of extra amino
     #acids that are added to prevent weirdness of representing a circle as a
     #line
@@ -73,10 +76,10 @@ def searchParams():
     pearBail = [0.01]
     numExtraX = [1]
     numHiddenNodes = [0]
-    numCLayers = [3,4,5]
-    numChannels = [16,32,64]
-    filterHeights = [[2,3],[2]]
-    keep_prob = [0.6, 0.65]
+    numCLayers = [3,5]
+    numChannels = [16,32]
+    filterHeights = [[2,3]]
+    keep_prob = [0.65]
     leakSlope = [0.01]
     batchSize = [27]
 
@@ -150,7 +153,7 @@ def getParamFiles(paramName, paramValue):
     filenames = []
 
     for filename in files:
-        best, params = getHyperParams(filename)
+        best, params = getHyperParams("paramResults/" + filename)
         if paramName == "kp" and params.keep_prob == paramValue:
             bests.append(best) 
             filenames.append(filename)
@@ -191,7 +194,7 @@ def getAllDoneParams():
 
     allParams = []
     for filename in files:
-        best, params = getHyperParams(filename)
+        best, params = getHyperParams("paramResults/" + filename)
         allParams.append(params)
     return allParams
 
@@ -288,7 +291,7 @@ def findBestHyper():
     bestOfBest = -1
     bestParams = -1
     for filename in files:
-        best, params = getHyperParams(filename)
+        best, params = getHyperParams("paramResults/" + filename)
         if best > bestOfBest:
             bestOfBest = best
             bestParams = params
@@ -299,7 +302,7 @@ def findBestHyper():
 #Read in a parameter test file, return the hyperparameters and best metric
 #accuracy
 def getHyperParams(filename):
-    paramFile = open("paramResults/" + filename, 'r')
+    paramFile = open(filename, 'r')
     hyper = params()
     bestMet = -1
 

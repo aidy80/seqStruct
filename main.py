@@ -10,10 +10,12 @@ from nnUser import nnUser
 import parseData
 import helpers
 import os
+import glob
 import shutil
 import numpy as np
 import tensorflow as tf
 import hyperparams 
+import sys
 
 #Determine the accuracy of a given set of hyperparameters. This is done using
 #cross validation on all of the sequences with less than 3 alanines. Also able
@@ -39,7 +41,7 @@ def createTrainTestPred(parameters, testNum):
     first = True
 
     #Print to command line the current parameter information
-    helpers.outputParamInfo(parameters, testNum) 
+    helpers.printParamInfo(parameters, testNum) 
 
     with tf.variable_scope("model" + str(testNum)):
         model = Cnn(parameters)
@@ -52,7 +54,8 @@ def createTrainTestPred(parameters, testNum):
     sess = tf.Session() 
     for seq in allSeqInfo:
         if helpers.numAla(seq) < 3 and seq not in doneSeqs:
-            print(seq)
+            if parameters.verbose:
+                print seq
             testSeqs.append(seq)
             count+=1
 
@@ -84,7 +87,7 @@ def createTrainTestPred(parameters, testNum):
 
     #Output the best metric average and corresponding hyperparameters to a file 
     #in the paramResults directory
-    helpers.outputParamResults(parameters, bestMetAvg, testNum)
+    helpers.writeParamInfo("paramResults/","testNum",parameters, bestMetAvg, testNum)
     sess.close()
 
 #Train a cnn with all of the data available. Then, run all possible sequences
@@ -114,11 +117,19 @@ def findWellStruct(parameters):
         nn_user.predict(sess, model, allSeqs, "best")
 
 #Search all hyperparams in a grid-fashion. The parameters being searched are in
-#hyperparams.searchParams()
-def gridSearch():
+#hyperparams.searchParams(). These are outputted to the
+#runScriptParamsDirectory where they can then be evaluated by the
+#Sh_parallelMain.sh script
+def gridSearchOutputParams():
+    for filename in glob.glob("runScriptParams/*"):
+        os.remove(filename)
+
     allParamSets = hyperparams.searchParams()
     for index, paramSet in enumerate(allParamSets):
-        createTrainTestPred(paramSet, 1 + helpers.getLastTestNum())
+        currRun = 1 + helpers.getLastParamNum()
+        helpers.writeParamInfo("runScriptParams/","params",paramSet,-1, currRun)
+        
+        #createTrainTestPred(paramSet, 1 + helpers.getLastTestNum())
 
 #Query the paramResults directory to find metric results where certain
 #hyperparameters were used
@@ -133,11 +144,18 @@ def paramSearch():
 #Main function. Uncomment relevant lines
 def main():
     #parameters = hyperparams.findBestHyper()
-    parameters = hyperparams.params()
+    #parameters = hyperparams.params()
     #createTrainTestPred(parameters, 0)
-
-    #gridSearch()
     #paramSearch() 
-    findWellStruct(parameters)
+    #findWellStruct(parameters)
+    #gridSearchOutputParams()
 
+    if len(sys.argv) == 3: 
+        if str(sys.argv[1]) == "0":
+            gridSearchOutputParams()
+        else:
+            _, parameters = hyperparams.getHyperParams("runScriptParams/params" + \
+                                                                sys.argv[1].zfill(3))
+            createTrainTestPred(parameters, int(sys.argv[2]) + helpers.getLastTestNum())
+        
 main()

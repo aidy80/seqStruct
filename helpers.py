@@ -36,7 +36,7 @@ def createTrainSeqs(allSeqInfo, testSeqs):
     return train
 
 #Output the information in the passed parameters class to the command line
-def outputParamInfo(parameters, testNum):
+def printParamInfo(parameters, testNum):
     print "\n\n\n"
     print "Running Set number ", testNum
     print "numChannels", parameters.numChannels
@@ -70,8 +70,8 @@ def outputPTrain(times, pTrain):
 
 #Output the parameters used in a given run along with the metric result to a
 #file in the paramResults directory
-def outputParamResults(params, metricResult, testNum):
-    paramFile = open("paramResults/testNum"+str(testNum).zfill(3), "w")
+def writeParamInfo(path, filename, params, metricResult, testNum):
+    paramFile = open(path+filename+str(testNum).zfill(3), "w")
     
     paramFile.write("learning_rate " + str(params.learning_rate) + "\n")
     paramFile.write("lr_decay " + str(params.lr_decay) + "\n")
@@ -91,7 +91,8 @@ def outputParamResults(params, metricResult, testNum):
     paramFile.write("metric " + str(params.metric) + "\n")
     paramFile.write("batchSize " + str(params.batchSize) + "\n")
     
-    paramFile.write("bestMet " + str(metricResult) + "\n")
+    if metricResult != -1:
+        paramFile.write("bestMet " + str(metricResult) + "\n")
 
     paramFile.close()
 
@@ -171,7 +172,15 @@ def getLastTestNum():
 
     return lastTestNum
     
+#Go through the runScripts/params directory and find the largest paramsNum 
+def getLastParamNum():
+    lastTestNum = 0
+    for name in os.listdir("runScriptParams"):
+        if int(name[7:]) > lastTestNum:
+            lastTestNum = int(name[7:])
 
+    return lastTestNum
+ 
     
 #Generate all possible sequences of hexapeptides and 
 def genAllSeqs():

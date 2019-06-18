@@ -19,6 +19,9 @@ class nnUser():
         self.numX = params.numX
         self.numExtraX = params.numExtraX
 
+        #Whether to print the cost over time to command line
+        self.verbose = params.verbose
+
         #Lists for the training and testing information (instances, labels, and
         #sequences) 
         self.trainInsts = []
@@ -172,14 +175,16 @@ class nnUser():
                 if(self.params.earlyStop):
                     if (self.metric == "pearson" and currMet > bestMet) or \
                        ((self.metric == "md" or self.metric == "rmsd") and currMet < bestMet):
-                        print currMet, bestMet
+                        if self.verbose:
+                            print currMet, bestMet
                         bestMet = currMet
                         if self.params.saveBest:
                             saver.save(sess, "model/my_model_final.ckpt")
                         notImprove = 0
                     else:
                         notImprove += 1
-                        print "Not", notImprove, currMet, bestMet
+                        if self.verbose:
+                            print "Not", notImprove, currMet, bestMet
                     if notImprove >= self.nImproveTime/self.calcMetStep:
                         self.lr *= self.largeDecay
                         notImprove = 0
