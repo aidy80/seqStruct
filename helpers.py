@@ -48,24 +48,26 @@ def printParamInfo(parameters, testNum):
     print "\n"
 
 #Output a file with the costs outputted during the training of a network
-def outputCostFile(times, costs):
-    costFile = open("costs/cost", "w")
+def outputCostFile(times, costs, testNum, batchNum):
+    costFile = open("costs/cost" + str(testNum) + "." + str(batchNum), "w")
     for index,time in enumerate(times):
         costFile.write(str(time) + " " + str(costs[index]) +"\n")
     costFile.close()
 
 #Output a file with the metric outputted during the training of a network
-def outputPTest(times, pTest):
-    costFile = open("costs/mTest", "w")
+def outputMetTest(times, metTest, metric, testNum, batchNum):
+    costFile = open("costs/mtest" + str(testNum) + "." + str(batchNum), "w")
+    costFile.write(metric + "\n")
     for index,time in enumerate(times):
-        costFile.write(str(time) + " " + str(pTest[index]) +"\n")
+        costFile.write(str(time) + " " + str(metTest[index]) +"\n")
     costFile.close()
 
 #Output a file with the metric outputted during the training of a network
-def outputPTrain(times, pTrain):
-    costFile = open("costs/mTrain", "w")
+def outputMetTrain(times, metTrain, metric, testNum, batchNum):
+    costFile = open("costs/mtrain" + str(testNum) + "." + str(batchNum), "w")
+    costFile.write(metric + "\n")
     for index, time in enumerate(times):
-        costFile.write(str(time) + " " + str(pTrain[index]) +"\n")
+        costFile.write(str(time) + " " + str(metTrain[index]) +"\n")
     costFile.close()
 
 #Output the parameters used in a given run along with the metric result to a

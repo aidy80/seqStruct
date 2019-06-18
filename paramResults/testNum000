@@ -15,4 +15,4 @@ keepProb [0.6, 0.6, 0.6, 0.6, 0.6, 0.6]
 leakSlope 0.01
 metric pearson
 batchSize 20
-bestMet 0.795338334691801
+bestMet 0.7785919370360594

@@ -41,8 +41,9 @@ class params():
     #Output the best model in the bestModel directory
     saveBest = True
 
-    #Whether to print costs to command line
-    verbose = False
+    #Whether to print costs to command line (verbose) and/or to files (outputCost)
+    verbose = True
+    outputCost = True
 
     #The number of amino acids in the instances, and the number of extra amino
     #acids that are added to prevent weirdness of representing a circle as a

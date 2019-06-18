@@ -38,8 +38,6 @@ def createTrainTestPred(parameters, testNum):
     #Number of sequences with known structure and less than 3 alanines
     numLessThree = helpers.numValidSet(allSeqInfo) 
 
-    first = True
-
     #Print to command line the current parameter information
     helpers.printParamInfo(parameters, testNum) 
 
@@ -47,6 +45,8 @@ def createTrainTestPred(parameters, testNum):
         model = Cnn(parameters)
 
     bestMetAvg = 0.0
+    batchNum = 0
+    
 
     #For each sequence, place it into the current batch. Then, when there are a
     #"batch number" of sequences collected, train a convo network with them as
@@ -66,15 +66,18 @@ def createTrainTestPred(parameters, testNum):
                 doneSeqs.append(currSeq)
 
             if count % parameters.batchSize == 0 or count == numLessThree:
+                batchNum += 1
                 nn_user.genData(testSeqs, "test")
                 times, costs, metTests, metTrains, metTestBest =\
-                    nn_user.trainNet(sess,model,outputCost=first)
+                    nn_user.trainNet(sess,model,outputCost=parameters.outputCost)
                 bestMetAvg += metTestBest * len(testSeqs) / helpers.numValidSet(allSeqInfo)
-                if first: #Output files of the training and testing accuracy
-                          #over the training process
-                    helpers.outputCostFile(times, costs) 
-                    helpers.outputPTest(times[0:len(metTests)], metTests)
-                    helpers.outputPTrain(times[0:len(metTrains)], metTrains)
+                if parameters.outputCost: #Output files of the training and testing accuracy
+                                          #over the training process
+                    helpers.outputCostFile(times, costs, testNum, batchNum) 
+                    helpers.outputMetTest(times[0:len(metTests)], metTests,
+                                            parameters.metric, testNum, batchNum)
+                    helpers.outputMetTrain(times[0:len(metTrains)], metTrains,
+                                            parameters.metric, testNum, batchNum)
 
                 trainSeqs = helpers.createTrainSeqs(allSeqInfo, testSeqs)
                 nn_user.predict(sess, model, testSeqs, "test")
@@ -116,10 +119,8 @@ def findWellStruct(parameters):
 
         nn_user.predict(sess, model, allSeqs, "best")
 
-#Search all hyperparams in a grid-fashion. The parameters being searched are in
-#hyperparams.searchParams(). These are outputted to the
-#runScriptParamsDirectory where they can then be evaluated by the
-#Sh_parallelMain.sh script
+#Generate a grid a params() objects and write the results to the
+#runScriptParams directory
 def gridSearchOutputParams():
     for filename in glob.glob("runScriptParams/*"):
         os.remove(filename)
@@ -129,7 +130,20 @@ def gridSearchOutputParams():
         currRun = 1 + helpers.getLastParamNum()
         helpers.writeParamInfo("runScriptParams/","params",paramSet,-1, currRun)
         
-        #createTrainTestPred(paramSet, 1 + helpers.getLastTestNum())
+#Search all hyperparams in a grid-fashion. The parameters being searched are in
+#hyperparams.searchParams(). These are outputted to the
+#runScriptParamsDirectory where they can then be evaluated by the
+#Sh_parallelMain.sh script
+def gridSearch():
+    if len(sys.argv) == 3: 
+        if str(sys.argv[1]) == "0":
+            gridSearchOutputParams()
+        else:
+            _, parameters = hyperparams.getHyperParams("runScriptParams/params" + \
+                                                                sys.argv[1].zfill(3))
+            createTrainTestPred(parameters, int(sys.argv[2]) + helpers.getLastTestNum())
+     
+
 
 #Query the paramResults directory to find metric results where certain
 #hyperparameters were used
@@ -144,18 +158,10 @@ def paramSearch():
 #Main function. Uncomment relevant lines
 def main():
     #parameters = hyperparams.findBestHyper()
-    #parameters = hyperparams.params()
-    #createTrainTestPred(parameters, 0)
+    parameters = hyperparams.params()
+    createTrainTestPred(parameters, 0)
     #paramSearch() 
     #findWellStruct(parameters)
-    #gridSearchOutputParams()
+    #gridSearch()
 
-    if len(sys.argv) == 3: 
-        if str(sys.argv[1]) == "0":
-            gridSearchOutputParams()
-        else:
-            _, parameters = hyperparams.getHyperParams("runScriptParams/params" + \
-                                                                sys.argv[1].zfill(3))
-            createTrainTestPred(parameters, int(sys.argv[2]) + helpers.getLastTestNum())
-        
 main()

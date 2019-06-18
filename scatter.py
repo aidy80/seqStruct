@@ -44,14 +44,14 @@ minP = 1.0
 maxName=''
 maxP = -1.0
 
-preds = []
-predY = []
-true = []
-
 #For each predicted structural ensemble with less than 3 alanine, calculate its 
 #pearson correlation coefficient, rmsd, and md (mean displacement). 
 #Additionally, plot the predicted in sequence information.
 for name in allFiles:
+    preds = []
+    predY = []
+    true = []
+
     normSeqName = name[15:21]
 
     predFile = open(sys.argv[1] + "predictions/" + name, "r")
@@ -124,7 +124,7 @@ for name in allFiles:
         preds.append(max(preds)+.6)
         predY.append(max(predY)+.6)
         plt.plot(np.array(preds), np.array(predY), label = 'Line of Perfect Prediction')
-        plt.show()
+        #plt.show()
 
 
     print
