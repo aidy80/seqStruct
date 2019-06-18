@@ -31,7 +31,8 @@ for line in mtestFile:
     if first:
         metric = words[0]
         first = False
-    mtest.append(float(words[1]))
+    else:
+        mtest.append(float(words[1]))
 
 first = True
 for line in mtrainFile:
@@ -39,7 +40,8 @@ for line in mtrainFile:
     if first:
         metric = words[0]
         first = False
-    mtrain.append(float(words[1]))
+    else:
+        mtrain.append(float(words[1]))
 
 fig, ax = plt.subplots(3, 1, sharex='col', sharey='row')
 
@@ -50,7 +52,7 @@ ax[1].set_ylabel("test " + metric)
 ax[2].scatter(times,mtrain)
 ax[2].set_ylabel("train " + metric)
 ax[2].set_xlabel("epochs")
-#plt.xlim(0,len(times))
+plt.xlim(0,max(times))
 
 fig.savefig("costs/fig" + str(sys.argv[1]) + ".png")
 plt.show()
