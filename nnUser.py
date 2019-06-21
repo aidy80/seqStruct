@@ -7,6 +7,9 @@
 import parseData
 import helpers
 import os
+import sys
+import shutil
+import math
 import numpy as np
 import tensorflow as tf
 
@@ -35,7 +38,8 @@ class nnUser():
         
         #Import hyperparameters
         self.metric = params.metric
-        if self.metric != "pearson" and self.metric != "md" and self.metric != "rmsd":
+        if self.metric != "pearson" and self.metric != "md" and \
+                            self.metric != "rmsd" and self.metric != "crossEnt":
             print self.metric, "Not yet implemented. Add it to the predict function"
 
         self.calcMetStep = params.calcMetStep
@@ -122,13 +126,18 @@ class nnUser():
     # training and testing accuracy through the training. This will be
     # outputted less than cost. The best testing metric found in the training
     # process
-    def trainNet(self, sess, model, outputCost):
+    def trainNet(self, sess, model, testNum, production, saveBest, outputCost):
         costs = []
         metTest = []
         metTrain = []
         times = []
         
+        if saveBest:
+            shutil.rmtree("model")
+            os.mkdir("model")
+
         self.lr = self.params.learning_rate
+        valid = helpers.validSet(self.allPops)
 
         sess.run(tf.global_variables_initializer())
 
@@ -136,8 +145,10 @@ class nnUser():
 
         optimizer = model.getOptimizer()
         loss = model.getLoss()
-        bestMet = -1
         currMet = -1
+        bestMet = sys.float_info.max
+        if self.metric == "pearson":
+            bestMet = sys.float_info.min
         notImprove = 0
 
         #For n_epochs, train the network iteratively
@@ -156,10 +167,15 @@ class nnUser():
 
             #Every calcMetStep, if early stopping or cost outputting is
             #present, do the following
-            if epoch % self.calcMetStep == 0 and (self.params.earlyStop or outputCost):
+            if epoch % self.calcMetStep == 0:
 
                 #Output the cost and training accuracies
-                currMet = self.predict(sess, model, self.testSeqs, goal="testReturn")
+                currMet = -1
+                if not production:
+                    currMet = self.predict(sess, model, self.testSeqs, goal="testReturn")
+                else:
+                    currMet = self.predict(sess, model, valid, goal="testReturn")
+
                 if outputCost:
                     metTest.append(currMet)
                     metTrain.append(self.predict(sess, model, \
@@ -172,25 +188,30 @@ class nnUser():
                 #significantly. If the training rate drops too low or 
                 #The testing accuracy falls deeply below the best metric, stop
                 #training
-                if(self.params.earlyStop):
-                    if (self.metric == "pearson" and currMet > bestMet) or \
-                       ((self.metric == "md" or self.metric == "rmsd") and currMet < bestMet):
-                        if self.verbose:
-                            print currMet, bestMet
-                        bestMet = currMet
-                        if self.params.saveBest:
-                            saver.save(sess, "model/my_model_final.ckpt")
-                        notImprove = 0
-                    else:
-                        notImprove += 1
-                        if self.verbose:
-                            print "Not", notImprove, currMet, bestMet
-                    if notImprove >= self.nImproveTime/self.calcMetStep:
-                        self.lr *= self.largeDecay
-                        notImprove = 0
-                    if self.lr <= self.lrThresh or bestMet - currMet > self.params.pearBail:
-                        break
-                    
+                hasImproved = (self.metric == "pearson" and currMet > bestMet) or \
+                       ((self.metric == "md" or self.metric == "rmsd" or \
+                           self.metric == "crossEnt") and currMet < bestMet)
+                if hasImproved:
+                    if self.verbose:
+                        print currMet, bestMet
+                    bestMet = currMet
+                    if saveBest:
+                        saver.save(sess, "model/my_model_final.ckpt")
+                    notImprove = 0
+                else:
+                    notImprove += 1
+                    if self.verbose:
+                        print "Not", notImprove, currMet, bestMet
+                if notImprove >= self.nImproveTime/self.calcMetStep:
+                    self.lr *= self.largeDecay
+                    notImprove = 0
+                if self.params.earlyStop and (self.lr <= self.lrThresh or 
+                    (not hasImproved and abs(bestMet - currMet) > self.params.metBail)):
+                    break
+
+        if not production:
+            helpers.writeParamInfo("paramResults/", "testNum", self.params, bestMet, testNum)
+
         return times, costs, metTest, metTrain, bestMet
 
     #Predict the structural ensembles of the predicted sequences passed in.
@@ -244,7 +265,7 @@ class nnUser():
         trueRow = []
         for turnComb in self.allTurnCombs:
             if turnComb in self.allPops[seq]:
-                trueRow.append(self.allPops[seq][turnComb])
+                trueRow.append(self.allPops[seq][turnComb] / 100.0)
             else:
                 trueRow.append(0.0)
         return trueRow

@@ -25,6 +25,7 @@ class Cnn():
         self.numHiddenNodes = params.numHiddenNodes
         self.numX = params.numX
         self.numExtraX = params.numExtraX
+        self.batchNorm = params.batchNorm
         
 
         #More hyperparameters that will be passed in at runtime
@@ -109,7 +110,8 @@ class Cnn():
             layerOut = layers.multiChannelCnn(cnnFilterIn, imgH, imgW, \
                                         filterHeights, self.batchSize,\
                                         numChannels[0], leakSlope)
-            #layerOut = tf.layers.batch_normalization(layerOut, training=True)
+            if self.batchNorm:
+                layerOut = tf.layers.batch_normalization(layerOut, training=True)
             layerIn = layerOut
 
             #Apply dropout to the outputted layer, using the keep_prob hyperparameter

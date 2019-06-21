@@ -73,6 +73,7 @@ def outputMetTrain(times, metTrain, metric, testNum, batchNum):
 #Output the parameters used in a given run along with the metric result to a
 #file in the paramResults directory
 def writeParamInfo(path, filename, params, metricResult, testNum):
+    print "writing params", path, filename
     paramFile = open(path+filename+str(testNum).zfill(3), "w")
     
     paramFile.write("learning_rate " + str(params.learning_rate) + "\n")
@@ -82,7 +83,7 @@ def writeParamInfo(path, filename, params, metricResult, testNum):
     paramFile.write("lrThresh " + str(params.lrThresh) + "\n")
     paramFile.write("largeDecay " + str(params.largeDecay) + "\n")
     paramFile.write("calcMetStep " + str(params.calcMetStep) + "\n")
-    paramFile.write("metricBail " + str(params.pearBail) + "\n")
+    paramFile.write("metricBail " + str(params.metBail) + "\n")
     paramFile.write("numExtraX " + str(params.numExtraX) + "\n")
     paramFile.write("hiddenNodes " + str(params.numHiddenNodes) + "\n")
     paramFile.write("numCLayers " + str(params.numCLayers) + "\n")
@@ -92,29 +93,32 @@ def writeParamInfo(path, filename, params, metricResult, testNum):
     paramFile.write("leakSlope " + str(params.leakSlope) + "\n")
     paramFile.write("metric " + str(params.metric) + "\n")
     paramFile.write("batchSize " + str(params.batchSize) + "\n")
+    paramFile.write("batchNorm " + str(params.batchNorm) + "\n")
     
     if metricResult != -1:
         paramFile.write("bestMet " + str(metricResult) + "\n")
 
     paramFile.close()
 
-#Return the number of sequences with known structures that have less than 3
+#Return the sequences with known structures that have less than 3
 #alanines. Cyclic equivalents not double counted
-def numValidSet(allSeqInfo):
+def validSet(allSeqInfo):
     doneSeqs = []
     
     count = 0
+    valid = []
 
     for seq in allSeqInfo:
         if numAla(seq) < 3 and seq not in doneSeqs:
             count += 1
+            valid.append(seq)
             doneSeqs.append(seq)
             currSeq = seq
             for i in range(5):
                 currSeq = currSeq[5] + currSeq[0:5]
                 doneSeqs.append(currSeq)
 
-    return count
+    return valid
 
 #Calculate a given metric between two sequences of values, one intended to be
 #predicted and the other intended to be true. Options are pearson correlation 
@@ -123,10 +127,21 @@ def calcMetric(row1, row2, metric):
     preds = []
     true = []
     #Include everything but the values for the "others" catagory
-    for index, val in enumerate(row1):
-        if index != 24:
-            preds.append(row1[index] * 100.0)
-            true.append(row2[index] * 100.0)
+    if metric != "crossEnt":
+        for index, val in enumerate(row1):
+            if index != 24:
+                preds.append(row1[index] * 100.0)
+                true.append(row2[index] * 100.0)
+    else:
+        for index, val in enumerate(row1):
+            preds.append(row1[index])
+            true.append(row2[index])
+
+    if metric == "crossEnt":
+        cross = 0.0
+        for index, val in enumerate(preds):
+            cross -= true[index] * math.log10(val)
+        return cross
                 
     #Calculate and return the pearson correlation coefficient
     if metric == "pearson":

@@ -58,7 +58,7 @@ for name in allFiles:
 
     for line in predFile:
         words = line.split()
-        if words[0] != "turn" and words[0] != 'mse:' and words[0] != 'other':
+        if words[0] != "turn" and words[0] != 'mse:':
             preds.append(float(words[1]))
             predY.append(float(words[1]))
             true.append(float(words[2]))
@@ -96,7 +96,7 @@ for name in allFiles:
         numNames+=1
         print("pearson: " + name + " " + str(pCoef))
     
-    if normSeqName == "VAFFRD":
+    if normSeqName == "DSRNDR":
         font = {'family' : 'normal', 
                 'size'   : 28}
         matplotlib.rc('font', **font)
@@ -124,7 +124,7 @@ for name in allFiles:
         preds.append(max(preds)+.6)
         predY.append(max(predY)+.6)
         plt.plot(np.array(preds), np.array(predY), label = 'Line of Perfect Prediction')
-        #plt.show()
+        plt.show()
 
 
     print

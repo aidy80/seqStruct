@@ -14,7 +14,7 @@ class params():
     #The learning rate, number of epochs, and percentage the learning rate
     #decays every decay epoch steps
     learning_rate = 0.001
-    n_epochs = 5000
+    n_epochs = 15000
     lr_decay = 0.97
     decay_epoch = 1000
 
@@ -22,24 +22,22 @@ class params():
     #parameters. This includes, in order, The number of epochs the network has
     #to improve before a largeDecay occurs on the learning rate. Additionally,
     #if the learning rate drops below lrThresh or the validation accuracy falls
-    #below pearBail of the best recorded validation accuracy, stop training
+    #below metBail of the best recorded validation accuracy, stop training
     earlyStop = True
     nImproveTime = 1500
     largeDecay = 0.5
-    pearBail = 0.025
+    metBail = 0.15
     lrThresh = 1e-4
     calcMetStep = 100
 
     #The metric used to evaluate the model. Either pearson, md, or rmsd
-    metric = "pearson"
+    metric = "crossEnt"
 
     #The size of the validation set and a boolean for whether cross validation
     #should be used
     batchSize = 20
+    batchNorm = True
     crossValid = True
-
-    #Output the best model in the bestModel directory
-    saveBest = True
 
     #Whether to print costs to command line (verbose) and/or to files (outputCost)
     verbose = True
@@ -74,7 +72,7 @@ def searchParams():
     lr = [0.001]    
     lr_decay = [0.97]
     decay_epoch = [1000]
-    pearBail = [0.01]
+    metBail = [0.01]
     numExtraX = [1]
     numHiddenNodes = [0]
     numCLayers = [3,5]
@@ -84,9 +82,9 @@ def searchParams():
     leakSlope = [0.01]
     batchSize = [27]
 
-    testingFeatures = [lr, pearBail, numExtraX, numHiddenNodes, batchSize,\
+    testingFeatures = [lr, metBail, numExtraX, numHiddenNodes, batchSize,\
             filterHeights, numChannels, keep_prob, leakSlope, numCLayers]
-    featNames = ["lr", "pb", "xX", "hn", "bs", "fh", "nc", "kp", "ls", "cl"]
+    featNames = ["lr", "mb", "xX", "hn", "bs", "fh", "nc", "kp", "ls", "cl"]
 
     #Create the grid of hyperparameters in the form of a 2D list
     paramLenList = []
@@ -185,7 +183,9 @@ def getParamFiles(paramName, paramValue):
         if paramName == "bs" and params.batchSize == paramValue:
             bests.append(best) 
             filenames.append(filename)
-
+        if paramName == "bn" and params.batchNorm == paramValue:
+            bests.append(best)
+            filenames.append(filename)
 
     return bests, filenames
 
@@ -208,7 +208,7 @@ def areEqual(params1, params2):
         equal = False
     if params1.decay_epoch != params2.decay_epoch:
         equal = False
-    if params1.pearBail != params2.pearBail:
+    if params1.metBail != params2.metBail:
         equal = False
     if params1.numExtraX != params2.numExtraX:
         equal = False
@@ -228,6 +228,8 @@ def areEqual(params1, params2):
         equal = False
     if params1.metric != params2.metric:
         equal = False
+    if params1.batchNorm != param2.batchNorm:
+        equal = False
 
     return equal
 
@@ -241,8 +243,8 @@ def setParams(params, featNames, featValues):
     for i, name in enumerate(featNames):
         if name == "lr":
             params.learning_rate = featValues[i]
-        elif name == "pb":
-            params.pearBail = featValues[i]
+        elif name == "mb":
+            params.metBail = featValues[i]
         elif name == "xX":
             params.numExtraX = featValues[i]
         elif name == "hn":
@@ -265,6 +267,8 @@ def setParams(params, featNames, featValues):
             params.metric = featValues[i]
         elif name == "bs":
             params.batchSize = featValues[i]
+        elif name == "bn":
+            params.batchNorm = featValues[i]
         else:
             print name, " is invalid thus far"
 
@@ -286,14 +290,14 @@ def makeZerosList(height, width):
     return zeros
 
 #Find and return the best found set of hyperparameters in paramResults
-def findBestHyper():
+def findBestHyper(desiredMetric):
     files = os.listdir("paramResults")
 
     bestOfBest = -1
     bestParams = -1
     for filename in files:
         best, params = getHyperParams("paramResults/" + filename)
-        if best > bestOfBest:
+        if params.metric == desiredMetric and best > bestOfBest:
             bestOfBest = best
             bestParams = params
 
@@ -326,7 +330,7 @@ def getHyperParams(filename):
         elif words[0] == "calcMetStep":
             hyper.calcMetStep = int(words[1])
         elif words[0] == "metricBail":
-            hyper.pearBail = float(words[1])
+            hyper.metBail = float(words[1])
         elif words[0] == "numExtraX":
             hyper.numExtraX = int(words[1])
         elif words[0] == "hiddenNodes":
@@ -337,6 +341,8 @@ def getHyperParams(filename):
             hyper.leakSlope = float(words[1])
         elif words[0] == "metric":
             hyper.metric = words[1]
+        elif words[0] == "batchNorm":
+            hyper.batchNorm = words[1]
         elif words[0] == "filterHeights":
             words1 = line.split('[')
             words2 = words1[1].split(',')
