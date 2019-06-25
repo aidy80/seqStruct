@@ -1,6 +1,6 @@
 #!/bin/bash
 
-totNumParams=4
+totNumParams=16
 count=0
 threadCap=2
 pwd
@@ -8,7 +8,7 @@ pwd
 for ((i = 0;i <= $totNumParams;i++))
 do
 	if [ $i -eq 0 ]; then
-		python main.py $i 
+		python main.py $i 0
 		echo "Outputting Params"
 	else 
 		count=$((count+1))

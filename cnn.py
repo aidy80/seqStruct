@@ -37,6 +37,10 @@ class Cnn():
         self.X = tf.placeholder(tf.float32, shape=(None, self.numX + self.numExtraX,\
                                                     len(self.aminos)), name="X")
         self.y = tf.placeholder(tf.float32, shape=(None, len(self.allTurnCombs)), name="y")
+        self.energy = -1
+        if params.energyOn:
+            self.energy = tf.placeholder(tf.float32,\
+                            shape=(None, params.numEn * (len(self.allTurnCombs) - 1)), name="energy")
 
         #Operations for the logits, optimizer, and loss functions
         self.logits = -1
@@ -65,9 +69,13 @@ class Cnn():
         #Parameters for the fully connected layer
         fcWordDim = (len(filterHeights) * numChannels[-1] + len(self.aminos))\
                             * cnnOut.get_shape()[1]
-        fcInput = tf.reshape(tf.concat(axis=2, values=[cnnOut, self.X]), \
-                                                                [-1,fcWordDim])
+    
         
+        fcInput = tf.reshape(tf.concat(axis=2, values=[cnnOut, self.X]), [-1,fcWordDim])
+        fcInput = tf.reshape(fcInput, [-1,fcWordDim])
+
+        #fcInput = tf.concat(axis=1,values=[fcInput, self.energy])
+
         #If there is a fully connected hidden layer, create one and then create
         #the logits (the values before the softmax function). Otherwise, just
         #create the logits
@@ -79,9 +87,13 @@ class Cnn():
         else:
             self.logits = layers.linear([fcInput], len(self.allTurnCombs), True, 1.0, scope="softmax")
 
+        #energyLogits = layers.linear([self.energy],len(self.allTurnCombs),
+        #        True, 1.0, scope="energy")
+
         #The loss function is cross softmax entropy with the logits created
         #above and the labels passed in above
         xentropy = tf.nn.softmax_cross_entropy_with_logits_v2(labels=self.y, logits=self.logits)
+        #xentropy = tf.nn.softmax_cross_entropy_with_logits_v2(labels=self.y,logits=energyLogits)
         self.loss=tf.reduce_mean(xentropy, name="loss") 
 
         #Create an optimizer to minimize the loss function
@@ -154,11 +166,13 @@ class Cnn():
 
     #Create a dictionary that can be used to feed in values into this network.
     #The values that can be fed in are fairly self explainatory
-    def createDict(self, keep_prob, X, batchSize, y=None, learning_rate=None):
+    def createDict(self, keep_prob, X, batchSize, energy=None, y=None, learning_rate=None):
         fdict = {}
         fdict[self.keep_prob] = keep_prob
         fdict[self.X] = X
         fdict[self.batchSize] = batchSize
+        if energy is not None:
+            fdict[self.energy] = energy
         if y is not None:
             fdict[self.y] = y
         if learning_rate is not None:

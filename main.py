@@ -46,7 +46,6 @@ def createTrainTestPred(parameters, testNum, save):
 
     bestMetAvg = 0.0
     batchNum = 0
-    
 
     #For each sequence, place it into the current batch. Then, when there are a
     #"batch number" of sequences collected, train a convo network with them as
@@ -207,7 +206,8 @@ def gridSearchOutputParams():
 #Search all hyperparams in a grid-fashion. The parameters being searched are in
 #hyperparams.searchParams(). These are outputted to the
 #runScriptParamsDirectory where they can then be evaluated by the
-#Sh_parallelMain.sh script
+#Sh_parallelMain.sh script when 0 is the command line argument, and it will run
+#the test number of the passed set of parameters.
 def gridSearch():
     if len(sys.argv) == 3: 
         if str(sys.argv[1]) == "0":
@@ -216,27 +216,27 @@ def gridSearch():
             _, parameters = hyperparams.getHyperParams("runScriptParams/params" + \
                                                                 sys.argv[1].zfill(3))
             createTrainTestPred(parameters, int(sys.argv[2]) + \
-                    helpers.getLastTestNum(), False)
+                                                helpers.getLastTestNum(), False)
      
 #Query the paramResults directory to find metric results where certain
 #hyperparameters were used
 def paramSearch():
     #featNames = ["lr", "mb", "xX", "hn", "fh", "nc", "kp", "ls", "cl", "met", "bs"]
-    featNames = ["kp", "fh"]
-    featValues = [[0.6,0.6,0.6,0.6], [2, 3]]
+    featNames = ["kp", "fh", "met"]
+    featValues = [[0.6,0.6,0.6,0.6], [2, 3], "crossEnt"]
     #featNames = ["kp"]
     #featValues = [[0.6,0.6,0.6,0.6]]
     hyperparams.searchParamResults(featNames, featValues)
 
 #Main function. Uncomment relevant lines
 def main():
-    #parameters = hyperparams.findBestHyper("crossMet")
+    #parameters = hyperparams.findBestHyper("crossEnt")
     #parameters = hyperparams.params()
     #createTrainTestPred(parameters, 0, False)
     #paramSearch() 
     #findWellStruct()
     #findSingleSeq("VVGGVG")
     #createBest(parameters)
-    #gridSearch()
+    gridSearch()
 
 main()

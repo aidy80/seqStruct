@@ -5,13 +5,14 @@ nImproveTime 1500
 lrThresh 0.0001
 largeDecay 0.5
 calcMetStep 100
-metricBail 0.01
+metricBail 0.15
 numExtraX 1
 hiddenNodes 0
 numCLayers 5
 filterHeights [2, 3]
-numChannels [32, 32, 32, 32, 32]
+numChannels [16, 16, 16, 16, 16]
 keepProb [0.65, 0.65, 0.65, 0.65, 0.65, 0.65]
 leakSlope 0.01
-metric pearson
-batchSize 27
+metric crossEnt
+batchSize 20
+batchNorm True

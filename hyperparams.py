@@ -14,7 +14,7 @@ class params():
     #The learning rate, number of epochs, and percentage the learning rate
     #decays every decay epoch steps
     learning_rate = 0.001
-    n_epochs = 15000
+    n_epochs = 20000
     lr_decay = 0.97
     decay_epoch = 1000
 
@@ -40,8 +40,11 @@ class params():
     crossValid = True
 
     #Whether to print costs to command line (verbose) and/or to files (outputCost)
-    verbose = True
+    verbose = False
     outputCost = True
+
+    numEn = 54
+    energyOn = False
 
     #The number of amino acids in the instances, and the number of extra amino
     #acids that are added to prevent weirdness of representing a circle as a
@@ -53,9 +56,10 @@ class params():
     #layers, the heights of the filters and the number of channels for each
     #filter height. The dropout rate for each layer. The slope of the leaky
     #relu function
-    numCLayers = 5
+    numCLayers = 4
     filterHeights = [2,3]
-    constNumChannels = 16
+    #filterHeights = [2]
+    constNumChannels = 32
     numChannels = [constNumChannels]*numCLayers
     constKeepProb = 0.6
     keep_prob=[constKeepProb]*(numCLayers+1)
@@ -72,15 +76,15 @@ def searchParams():
     lr = [0.001]    
     lr_decay = [0.97]
     decay_epoch = [1000]
-    metBail = [0.01]
+    metBail = [0.15]
     numExtraX = [1]
     numHiddenNodes = [0]
     numCLayers = [3,5]
     numChannels = [16,32]
-    filterHeights = [[2,3]]
-    keep_prob = [0.65]
+    filterHeights = [[2,3], [2]]
+    keep_prob = [0.6, 0.65]
     leakSlope = [0.01]
-    batchSize = [27]
+    batchSize = [20]
 
     testingFeatures = [lr, metBail, numExtraX, numHiddenNodes, batchSize,\
             filterHeights, numChannels, keep_prob, leakSlope, numCLayers]
@@ -228,7 +232,7 @@ def areEqual(params1, params2):
         equal = False
     if params1.metric != params2.metric:
         equal = False
-    if params1.batchNorm != param2.batchNorm:
+    if params1.batchNorm != params2.batchNorm:
         equal = False
 
     return equal
@@ -301,6 +305,8 @@ def findBestHyper(desiredMetric):
             bestOfBest = best
             bestParams = params
 
+    if bestParams == -1:
+        print "Error, no files with the desired metric were found"
     return bestParams
 
     

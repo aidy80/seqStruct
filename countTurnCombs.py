@@ -21,5 +21,3 @@ for turnComb in turnDict.keys():
     turnDict[turnComb] = float(turnDict[turnComb]) / float(totalCounts)
     print turnComb, turnDict[turnComb]
 
-
-print len(turnDict)

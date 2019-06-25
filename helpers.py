@@ -73,8 +73,9 @@ def outputMetTrain(times, metTrain, metric, testNum, batchNum):
 #Output the parameters used in a given run along with the metric result to a
 #file in the paramResults directory
 def writeParamInfo(path, filename, params, metricResult, testNum):
-    print "writing params", path, filename
-    paramFile = open(path+filename+str(testNum).zfill(3), "w")
+    paramFilename = path+filename+str(testNum).zfill(3)
+
+    paramFile = open(paramFilename, "w")
     
     paramFile.write("learning_rate " + str(params.learning_rate) + "\n")
     paramFile.write("lr_decay " + str(params.lr_decay) + "\n")

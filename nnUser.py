@@ -18,6 +18,8 @@ class nnUser():
         #Information about the instances the cnn uses
         self.allPops, self.allTurnCombs = parseData.getSeqInfo()
         self.allTurnCombs = self.allTurnCombs.keys()
+        self.energy = parseData.getEnergyInfo()
+
         self.aminos = parseData.getAminos()
         self.numX = params.numX
         self.numExtraX = params.numExtraX
@@ -33,6 +35,8 @@ class nnUser():
         self.testLabels = []
         self.testSeqs = []
         self.trainSeqs = []
+        self.energyTrainVec = []
+        self.energyTestVec = []
 
         self.params = params
         
@@ -61,6 +65,9 @@ class nnUser():
         self.trainLabels = []
         self.testInsts = []
         self.testLabels = []
+
+        self.energyTrainVec = []
+        self.energyTestVec = []
 
     #Fill the training and testing information with based on the passed in test
     #sequences and the users goal (dataType)
@@ -94,7 +101,35 @@ class nnUser():
 
             turnCount+=1
 
+        if self.params.energyOn:
+            testCount = 0
+            trainCount = 0
+            for seq in self.allPops:
+                if not helpers.inSeqs(seq, testSeqs) or dataType == "train":
+                    self.energyTrainVec.append([])
+                    for turnComb in self.allTurnCombs:
+                        if turnComb != "other":
+                            currEnVec = self.genEnergyVec(seq,turnComb)
+                            for energyTerm in currEnVec:
+                                if energyTerm != 0.0:
+                                    self.energyTrainVec[trainCount].append(energyTerm)
+                    trainCount += 1
+
+                elif seq in testSeqs:
+                    self.energyTestVec.append([])
+                    for turnComb in self.allTurnCombs:
+                        if turnComb != "other":
+                            currEnVec = self.genEnergyVec(seq,turnComb)
+                            for energyTerm in currEnVec:
+                                if energyTerm != 0.0:
+                                    self.energyTestVec[testCount].append(energyTerm)
+                    testCount += 1
+
         #Convert the training and testing information into numpy arrays
+        self.energyTrainVec = np.array(self.energyTrainVec)
+        self.energyTestVec = np.array(self.energyTestVec)
+        self.energyTrainVec = np.array(self.energyTrainVec)
+        self.energyTestVec = np.array(self.energyTestVec)
         self.trainLabels = np.array(self.trainLabels).transpose()
         self.testLabels = np.array(self.testLabels).transpose()
         self.trainInsts = np.array(self.trainInsts)
@@ -114,6 +149,21 @@ class nnUser():
                 seq_vec[index + self.numX, inv_aminos_map[amino]] = 1
 
         return seq_vec 
+   
+    #Generate a vector used to represent the energetics of a given sequence
+    #taking a given turn combination
+    def genEnergyVec(self, seq, turnComb):
+        energyVec = np.zeros(len(self.energy["AAADSV"]["II_0II_3"]))
+        if turnComb in self.energy[seq]:
+            for index, energy in enumerate(self.energy[seq][turnComb]):
+                energyVec[index] = self.energy[seq][turnComb][energy]
+        else:
+            for index, energy in enumerate(self.energy[seq][turnComb]):
+                energyVec[index] = -3.0
+                #if energy == "PE_W" or energy == "PE_P" or energy == "PE_PW":
+
+        return energyVec
+
 
     #Train passed in neural network
     #
@@ -161,8 +211,11 @@ class nnUser():
             #Optimize the classifier for one step, feeding in relevant info
             X_batch = self.trainInsts
             y_batch = self.trainLabels
-            feed_dict = model.createDict(self.keep_prob, X_batch,
-                    len(self.trainInsts), y_batch, self.lr)
+            feed_dict = model.createDict(self.keep_prob,X_batch,
+                            len(self.trainInsts), None, y_batch, self.lr)
+            if self.params.energyOn:
+                feed_dict = model.createDict(self.keep_prob,X_batch,
+                            len(self.trainInsts), self.energyTrainVec, y_batch, self.lr)
             _,c = sess.run([optimizer, loss], feed_dict=feed_dict)
 
             #Every calcMetStep, if early stopping or cost outputting is
@@ -209,9 +262,6 @@ class nnUser():
                     (not hasImproved and abs(bestMet - currMet) > self.params.metBail)):
                     break
 
-        if not production:
-            helpers.writeParamInfo("paramResults/", "testNum", self.params, bestMet, testNum)
-
         return times, costs, metTest, metTrain, bestMet
 
     #Predict the structural ensembles of the predicted sequences passed in.
@@ -232,8 +282,11 @@ class nnUser():
             predVec = self.genSeqVec2D(seq, self.numX + self.numExtraX)
             predVecs.append(predVec)
         if len(predVecs) != 0:
-            feed_dict = model.createDict(keep_prob=[1.0]*(self.params.numCLayers+1), X=predVecs,\
-                                                    batchSize = len(predSeqs))
+            feed_dict = model.createDict(keep_prob=[1.0]*(self.params.numCLayers+1), 
+                                         X=predVecs, energy=None, batchSize = len(predSeqs))
+            if self.params.energyOn:
+                feed_dict = model.createDict(keep_prob=[1.0]*(self.params.numCLayers+1), 
+                                         X=predVecs, energy=self.energyTestVec, batchSize = len(predSeqs))
             logits = model.getLogits()
             Z = logits.eval(session=sess, feed_dict=feed_dict)
             result = sess.run(tf.nn.softmax(Z))
