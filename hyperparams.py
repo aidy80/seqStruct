@@ -35,12 +35,12 @@ class params():
 
     #The size of the validation set and a boolean for whether cross validation
     #should be used
-    batchSize = 20
+    batchSize = 8
     batchNorm = True
     crossValid = True
 
     #Whether to print costs to command line (verbose) and/or to files (outputCost)
-    verbose = False
+    verbose = True
     outputCost = True
 
     numEn = 54
@@ -56,10 +56,9 @@ class params():
     #layers, the heights of the filters and the number of channels for each
     #filter height. The dropout rate for each layer. The slope of the leaky
     #relu function
-    numCLayers = 4
+    numCLayers = 3
     filterHeights = [2,3]
-    #filterHeights = [2]
-    constNumChannels = 32
+    constNumChannels = 16
     numChannels = [constNumChannels]*numCLayers
     constKeepProb = 0.6
     keep_prob=[constKeepProb]*(numCLayers+1)
@@ -79,12 +78,12 @@ def searchParams():
     metBail = [0.15]
     numExtraX = [1]
     numHiddenNodes = [0]
-    numCLayers = [3,5]
-    numChannels = [16,32]
-    filterHeights = [[2,3], [2]]
-    keep_prob = [0.6, 0.65]
+    numCLayers = [3]
+    numChannels = [16]
+    filterHeights = [[2,3]]
+    keep_prob = [0.6]
     leakSlope = [0.01]
-    batchSize = [20]
+    batchSize = [80]
 
     testingFeatures = [lr, metBail, numExtraX, numHiddenNodes, batchSize,\
             filterHeights, numChannels, keep_prob, leakSlope, numCLayers]
@@ -348,7 +347,7 @@ def getHyperParams(filename):
         elif words[0] == "metric":
             hyper.metric = words[1]
         elif words[0] == "batchNorm":
-            hyper.batchNorm = words[1]
+            hyper.batchNorm = (words[1] == 'True')
         elif words[0] == "filterHeights":
             words1 = line.split('[')
             words2 = words1[1].split(',')

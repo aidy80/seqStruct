@@ -230,13 +230,13 @@ def paramSearch():
 
 #Main function. Uncomment relevant lines
 def main():
-    #parameters = hyperparams.findBestHyper("crossEnt")
+    parameters = hyperparams.findBestHyper("crossEnt")
     #parameters = hyperparams.params()
-    #createTrainTestPred(parameters, 0, False)
+    createTrainTestPred(parameters, 0, False)
     #paramSearch() 
     #findWellStruct()
-    #findSingleSeq("VVGGVG")
+    #findSingleSeq("SDDSDD")
     #createBest(parameters)
-    gridSearch()
+    #gridSearch()
 
 main()

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-totNumParams=16
+totNumParams=2
 count=0
 threadCap=2
 pwd

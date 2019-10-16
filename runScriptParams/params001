@@ -14,5 +14,5 @@ numChannels [16, 16, 16]
 keepProb [0.6, 0.6, 0.6, 0.6]
 leakSlope 0.01
 metric crossEnt
-batchSize 20
+batchSize 80
 batchNorm True
